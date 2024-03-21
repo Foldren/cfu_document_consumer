@@ -1,0 +1,16 @@
+version: "3.3"
+services:
+  ms_linker:
+    build: .
+    container_name: declaration_consumer
+    restart: always
+    environment:
+      - TZ=Europe/Moscow
+    env_file:
+      - ./source/.env
+    networks:
+      - uprav_cfu_network
+
+networks:
+  uprav_cfu_network:
+    external: true
