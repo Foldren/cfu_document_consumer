@@ -65,43 +65,43 @@ async def create_declaration(request: CreateDeclarationRequest):
         {'text': request.owner.patronymic, 'row_options': ROW_OPTIONS['TITLE']['PATRONYMIC']},
         # Вставляем Отчество
         {'text': request.owner.phoneNumber, 'row_options': ROW_OPTIONS['TITLE']['PHONE_NUMBER']},
+    ], is_title_list=True)
+
+    ws = wb['Раздел 1.1']  # Открываем лист 'Раздел 1.1'
+    await Excel(worksh=ws).insert_rows_to_ws([
+        # Вставляем ОКТМО код
+        {'text': request.declaration.oktmoCurrent, 'row_options': ROW_OPTIONS['1_1']['OKTMO_010']},
     ])
 
-    # ws = wb['Раздел 1.1']  # Открываем лист 'Раздел 1.1'
-    # await Excel(worksh=ws).insert_rows_to_ws([
-    #     # Вставляем ОКТМО код
-    #     {'text': request.declaration.oktmoCurrent, 'row_options': ROW_OPTIONS['1_1']['OKTMO_010']},
-    # ])
-
-    # ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
-    # await Excel(worksh=ws).insert_rows_to_ws([
-    #     # Вставляем строку 101 (налоговая ставка)
-    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['101']},
-    #     # Вставляем строку 110
-    #     {'text': code_110, 'row_options': ROW_OPTIONS['2_1_1']['110']},
-    #     # Вставляем строку 111
-    #     {'text': code_111, 'row_options': ROW_OPTIONS['2_1_1']['111']},
-    #     # Вставляем строку 112
-    #     {'text': code_112, 'row_options': ROW_OPTIONS['2_1_1']['112']},
-    #     # Вставляем строку 113
-    #     {'text': code_113, 'row_options': ROW_OPTIONS['2_1_1']['113']},
-    #     # Вставляем строку 120 (налоговая ставка)
-    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['120']},
-    #     # Вставляем строку 121 (налоговая ставка)
-    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['121']},
-    #     # Вставляем строку 122 (налоговая ставка)
-    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['122']},
-    #     # Вставляем строку 123 (налоговая ставка)
-    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['123']},
-    #     # Вставляем строку 130
-    #     {'text': code_130, 'row_options': ROW_OPTIONS['2_1_1']['130']},
-    #     # Вставляем строку 131
-    #     {'text': code_131, 'row_options': ROW_OPTIONS['2_1_1']['131']},
-    #     # Вставляем строку 132
-    #     {'text': code_132, 'row_options': ROW_OPTIONS['2_1_1']['132']},
-    #     # Вставляем строку 133
-    #     {'text': code_133, 'row_options': ROW_OPTIONS['2_1_1']['133']},
-    # ])
+    ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
+    await Excel(worksh=ws).insert_rows_to_ws([
+        # Вставляем строку 101 (налоговая ставка)
+        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['101']},
+        # Вставляем строку 110
+        {'text': code_110, 'row_options': ROW_OPTIONS['2_1_1']['110']},
+        # Вставляем строку 111
+        {'text': code_111, 'row_options': ROW_OPTIONS['2_1_1']['111']},
+        # Вставляем строку 112
+        {'text': code_112, 'row_options': ROW_OPTIONS['2_1_1']['112']},
+        # Вставляем строку 113
+        {'text': code_113, 'row_options': ROW_OPTIONS['2_1_1']['113']},
+        # Вставляем строку 120 (налоговая ставка)
+        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['120']},
+        # Вставляем строку 121 (налоговая ставка)
+        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['121']},
+        # Вставляем строку 122 (налоговая ставка)
+        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['122']},
+        # Вставляем строку 123 (налоговая ставка)
+        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['123']},
+        # Вставляем строку 130
+        {'text': code_130, 'row_options': ROW_OPTIONS['2_1_1']['130']},
+        # Вставляем строку 131
+        {'text': code_131, 'row_options': ROW_OPTIONS['2_1_1']['131']},
+        # Вставляем строку 132
+        {'text': code_132, 'row_options': ROW_OPTIONS['2_1_1']['132']},
+        # Вставляем строку 133
+        {'text': code_133, 'row_options': ROW_OPTIONS['2_1_1']['133']},
+    ])
 
     try:
         # Сохраняем в поток

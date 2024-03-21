@@ -16,7 +16,7 @@ class Excel:
     def __init__(self, worksh: Worksheet):
         self.ws = worksh
 
-    async def insert_row_to_ws(self, text: str, row_options: dict, is_title_list: bool = True) -> None:
+    async def insert_row_to_ws(self, text: str, row_options: dict, is_title_list: bool) -> None:
         """
         Функция для вставки текста в поле декларации.
 
@@ -44,10 +44,11 @@ class Excel:
             else:
                 i += 1
 
-    async def insert_rows_to_ws(self, list_rows: list[dict]) -> None:
+    async def insert_rows_to_ws(self, list_rows: list[dict], is_title_list: bool = False) -> None:
         """
         Метод для множественного заполнения полей декларации.
 
+        :param is_title_list: флаг титульного листа, в нем в 2 раза больше ячеек
         :param list_rows: список строк со значением типа
         {'text': 'sometext', 'row_options': {'first_col': 1, 'last_col': 1, 'index': 1}}
         """
@@ -55,4 +56,5 @@ class Excel:
             if (('text' not in row) or ('row_options' not in row) or ('first_col' not in row['row_options']) or
                     ('last_col' not in row['row_options']) or ('index' not in row['row_options'])):
                 raise ValueError('Не правильно заданы параметры входных данных.')
-            await self.insert_row_to_ws(str(row['text']), row['row_options'])
+            if row['text'] is not None:
+                await self.insert_row_to_ws(str(row['text']), row['row_options'], is_title_list=is_title_list)
