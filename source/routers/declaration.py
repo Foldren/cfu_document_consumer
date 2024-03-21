@@ -5,8 +5,9 @@ from openpyxl.reader.excel import load_workbook
 from components.declaration_fields import ROW_OPTIONS
 from components.decorators import consumer
 from components.queues import declaration_queue
-from components.requests.declaration import DeclarationCreateDeclarationRequest
-from components.responses.declaration import DeclarationCreateDeclarationResponse
+from components.requests.declaration import CreateDeclarationRequest, GetDeclarationsRequest
+from components.responses.children import CDeclaration
+from components.responses.declaration import CreateDeclarationResponse, GetDeclarationsResponse
 from config import EXCEL_TEMPLATE_PATH
 from db_models.declaration import Declaration, DeclarationStatus
 from modules.content_api import ContentApi
@@ -16,8 +17,8 @@ router = RabbitRouter()
 
 
 @consumer(router=router, queue=declaration_queue, pattern="declaration.create-declaration",
-          request=DeclarationCreateDeclarationRequest)
-async def create_declaration(request: DeclarationCreateDeclarationRequest):
+          request=CreateDeclarationRequest)
+async def create_declaration(request: CreateDeclarationRequest):
     current_date = datetime.now()
     file_name = (f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
                  f"{current_date.strftime('%Y-%m-%d')}.xlsx")  # Имя файла fio-inn-date
@@ -31,7 +32,7 @@ async def create_declaration(request: DeclarationCreateDeclarationRequest):
     )
 
     output = BytesIO()
-    wb = load_workbook(filename=EXCEL_TEMPLATE_PATH, data_only=True)
+    wb = load_workbook(filename=EXCEL_TEMPLATE_PATH)
 
     code_110 = request.revenue.threeMonths
     code_111 = request.revenue.sixMonths
@@ -66,52 +67,71 @@ async def create_declaration(request: DeclarationCreateDeclarationRequest):
         {'text': request.owner.phoneNumber, 'row_options': ROW_OPTIONS['TITLE']['PHONE_NUMBER']},
     ])
 
-    ws = wb['Раздел 1.1']  # Открываем лист 'Раздел 1.1'
-    await Excel(worksh=ws).insert_rows_to_ws([
-        # Вставляем ОКТМО код
-        {'text': request.declaration.oktmoCurrent, 'row_options': ROW_OPTIONS['1_1']['OKTMO_010']},
-    ])
+    # ws = wb['Раздел 1.1']  # Открываем лист 'Раздел 1.1'
+    # await Excel(worksh=ws).insert_rows_to_ws([
+    #     # Вставляем ОКТМО код
+    #     {'text': request.declaration.oktmoCurrent, 'row_options': ROW_OPTIONS['1_1']['OKTMO_010']},
+    # ])
 
-    ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
-    await Excel(worksh=ws).insert_rows_to_ws([
-        # Вставляем строку 101 (налоговая ставка)
-        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['101']},
-        # Вставляем строку 110
-        {'text': code_110, 'row_options': ROW_OPTIONS['2_1_1']['110']},
-        # Вставляем строку 111
-        {'text': code_111, 'row_options': ROW_OPTIONS['2_1_1']['111']},
-        # Вставляем строку 112
-        {'text': code_112, 'row_options': ROW_OPTIONS['2_1_1']['112']},
-        # Вставляем строку 113
-        {'text': code_113, 'row_options': ROW_OPTIONS['2_1_1']['113']},
-        # Вставляем строку 120 (налоговая ставка)
-        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['120']},
-        # Вставляем строку 121 (налоговая ставка)
-        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['121']},
-        # Вставляем строку 122 (налоговая ставка)
-        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['122']},
-        # Вставляем строку 123 (налоговая ставка)
-        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['123']},
-        # Вставляем строку 130
-        {'text': code_130, 'row_options': ROW_OPTIONS['2_1_1']['130']},
-        # Вставляем строку 131
-        {'text': code_131, 'row_options': ROW_OPTIONS['2_1_1']['131']},
-        # Вставляем строку 132
-        {'text': code_132, 'row_options': ROW_OPTIONS['2_1_1']['132']},
-        # Вставляем строку 133
-        {'text': code_133, 'row_options': ROW_OPTIONS['2_1_1']['133']},
-    ])
+    # ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
+    # await Excel(worksh=ws).insert_rows_to_ws([
+    #     # Вставляем строку 101 (налоговая ставка)
+    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['101']},
+    #     # Вставляем строку 110
+    #     {'text': code_110, 'row_options': ROW_OPTIONS['2_1_1']['110']},
+    #     # Вставляем строку 111
+    #     {'text': code_111, 'row_options': ROW_OPTIONS['2_1_1']['111']},
+    #     # Вставляем строку 112
+    #     {'text': code_112, 'row_options': ROW_OPTIONS['2_1_1']['112']},
+    #     # Вставляем строку 113
+    #     {'text': code_113, 'row_options': ROW_OPTIONS['2_1_1']['113']},
+    #     # Вставляем строку 120 (налоговая ставка)
+    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['120']},
+    #     # Вставляем строку 121 (налоговая ставка)
+    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['121']},
+    #     # Вставляем строку 122 (налоговая ставка)
+    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['122']},
+    #     # Вставляем строку 123 (налоговая ставка)
+    #     {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['123']},
+    #     # Вставляем строку 130
+    #     {'text': code_130, 'row_options': ROW_OPTIONS['2_1_1']['130']},
+    #     # Вставляем строку 131
+    #     {'text': code_131, 'row_options': ROW_OPTIONS['2_1_1']['131']},
+    #     # Вставляем строку 132
+    #     {'text': code_132, 'row_options': ROW_OPTIONS['2_1_1']['132']},
+    #     # Вставляем строку 133
+    #     {'text': code_133, 'row_options': ROW_OPTIONS['2_1_1']['133']},
+    # ])
 
-    # Сохраняем в поток
-    wb.save(output)
+    try:
+        # Сохраняем в поток
+        wb.save(output)
 
-    # Загружаем в контентный микросервис файл
-    content_response = await ContentApi(user_id=request.userID).upload(data=output.getvalue(), file_name=file_name)
+        # Загружаем в контентный микросервис файл
+        content_response = await ContentApi(user_id=request.userID).upload(data=output.getvalue(), file_name=file_name)
 
-    declaration.status = DeclarationStatus.success
-    declaration.image_url = content_response.fileName
-    await declaration.save()
+        declaration.status = DeclarationStatus.success
+        declaration.image_url = content_response.fileName
+        await declaration.save()
 
-    print(content_response.fileName)
+    except Exception:
+        declaration.status = DeclarationStatus.error
 
-    # return DeclarationCreateDeclarationResponse(declarationID=declaration.id)
+    return CreateDeclarationResponse(declarationID=declaration.id)
+
+
+@consumer(router=router, queue=declaration_queue, pattern="declaration.get-declarations",
+          request=GetDeclarationsRequest)
+async def get_declarations(request: GetDeclarationsRequest) -> GetDeclarationsResponse:
+    declarations = await Declaration.filter(user_id=request.userID).all()
+
+    lit_declarations_r = []
+    for dclr in declarations:
+        lit_declarations_r.append(CDeclaration(name=dclr.file_name,
+                                               inn=dclr.legal_entity_inn,
+                                               date=dclr.date.strftime('%Y-%m-%d'),
+                                               status=dclr.status,
+                                               url=dclr.image_url
+                                               ))
+
+    return GetDeclarationsResponse(declarations=lit_declarations_r)

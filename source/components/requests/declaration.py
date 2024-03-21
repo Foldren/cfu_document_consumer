@@ -1,15 +1,22 @@
 from dataclasses import dataclass
-from components.requests.children import (CCreateDeclarationBase, CCreateDeclarationOwner,
-                                          CCreateDeclarationDeclaration, CCreateDeclarationRevenue)
+from components.requests.children import (CDeclarationBase, CDeclarationOwner,
+                                          CDeclarationDeclaration, CDeclarationRevenue)
 
 
 @dataclass
-class DeclarationCreateDeclarationRequest:
+class CreateDeclarationRequest:
+    __slots__ = {"userID", "base", "owner", "declaration", "revenue"}
     userID: str
-    base: CCreateDeclarationBase
-    owner: CCreateDeclarationOwner
-    declaration: CCreateDeclarationDeclaration
-    revenue: CCreateDeclarationRevenue
+    base: CDeclarationBase
+    owner: CDeclarationOwner
+    declaration: CDeclarationDeclaration
+    revenue: CDeclarationRevenue
+
+
+@dataclass
+class GetDeclarationsRequest:
+    __slots__ = {"userID"}
+    userID: str
 
 
 

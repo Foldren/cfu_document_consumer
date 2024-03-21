@@ -55,4 +55,4 @@ class Excel:
             if (('text' not in row) or ('row_options' not in row) or ('first_col' not in row['row_options']) or
                     ('last_col' not in row['row_options']) or ('index' not in row['row_options'])):
                 raise ValueError('Не правильно заданы параметры входных данных.')
-            await self.insert_row_to_ws(row['text'], row['row_options'])
+            await self.insert_row_to_ws(str(row['text']), row['row_options'])

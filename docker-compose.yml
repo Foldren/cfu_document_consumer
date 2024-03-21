@@ -1,6 +1,6 @@
 version: "3.3"
 services:
-  ms_linker:
+  declaration_consumer:
     build: .
     container_name: declaration_consumer
     restart: always
@@ -10,6 +10,26 @@ services:
       - ./source/.env
     networks:
       - uprav_cfu_network
+
+  declaration_db:
+    image: postgres:16.1-alpine3.18
+    container_name: declaration_db
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - 39455:5432
+    environment:
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    networks:
+      - uprav_cfu_network
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
 
 networks:
   uprav_cfu_network:

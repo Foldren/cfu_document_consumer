@@ -1,9 +1,9 @@
 from pydantic.dataclasses import dataclass
-from components.requests.enums import RateEnum
+from components.enums import RateEnum
 
 
 @dataclass
-class CCreateDeclarationBase:
+class CDeclarationBase:
     inn: str
     rate: RateEnum
     legalEntityID: str = None
@@ -11,7 +11,7 @@ class CCreateDeclarationBase:
 
 
 @dataclass
-class CCreateDeclarationOwner:
+class CDeclarationOwner:
     __slots__ = {"lastName", "firstName", "patronymic", "taxPayer", "phoneNumber"}
     lastName: str
     firstName: str
@@ -21,7 +21,7 @@ class CCreateDeclarationOwner:
 
 
 @dataclass
-class CCreateDeclarationDeclaration:
+class CDeclarationDeclaration:
     adjustmentNumber: str  # -
     taxPeriod: str  # -
     reportingYear: str
@@ -33,7 +33,7 @@ class CCreateDeclarationDeclaration:
 
 
 @dataclass
-class CCreateDeclarationRevenue:
+class CDeclarationRevenue:
     __slots__ = {"threeMonths", "sixMonths", "nineMonths", "twelveMonths"}
     threeMonths: int
     sixMonths: int
