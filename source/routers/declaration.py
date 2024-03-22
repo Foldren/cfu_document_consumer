@@ -28,7 +28,8 @@ async def create_declaration(request: CreateDeclarationRequest):
         user_id=request.userID,
         file_name=file_name,
         date=current_date,
-        legal_entity_inn=request.base.legalEntityID
+        legal_entity_inn=request.base.inn,
+        legal_entity_id=request.base.legalEntityID
     )
 
     output = BytesIO()
@@ -120,9 +121,9 @@ async def create_declaration(request: CreateDeclarationRequest):
     return CreateDeclarationResponse(declarationID=declaration.id)
 
 
-@consumer(router=router, queue=declaration_queue, pattern="declaration.get-declarations",
+@consumer(router=router, queue=declaration_queue, pattern="declaration.get-declaration-list",
           request=GetDeclarationsRequest)
-async def get_declarations(request: GetDeclarationsRequest) -> GetDeclarationsResponse:
+async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclarationsResponse:
     declarations = await Declaration.filter(user_id=request.userID).all()
 
     lit_declarations_r = []

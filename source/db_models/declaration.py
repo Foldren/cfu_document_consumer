@@ -12,6 +12,7 @@ class DeclarationStatus(str, Enum):
 class Declaration(Model):
     id = BigIntField(pk=True)
     user_id = CharField(max_length=100, index=True)
+    legal_entity_id = CharField(max_length=100, index=True, null=True)
     file_name = CharField(max_length=170, index=True)
     date = DateField(index=True)
     legal_entity_inn = TextField(maxlength=30, null=True)

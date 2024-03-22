@@ -10,7 +10,6 @@ ROW_OPTIONS = {
     },
     '1_1': {
         'OKTMO_010': {'first_col': 25, 'last_col': 35, 'index': 13},
-        # SECTION_11_FIELD_010 = []
         # SECTION_11_FIELD_020 = []
         # SECTION_11_FIELD_030 = []
         # SECTION_11_FIELD_040 = []
@@ -21,6 +20,7 @@ ROW_OPTIONS = {
         # SECTION_11_FIELD_090 = []
         # SECTION_11_FIELD_100 = []
         # SECTION_11_FIELD_101 = []
+        # SECTION_11_FIELD_110 = []
     },
     '2_1_1': {
         '101': {'first_col': 28, 'last_col': 28, 'index': 11},

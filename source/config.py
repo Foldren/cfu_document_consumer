@@ -1,5 +1,4 @@
 from os import environ, getcwd
-
 from dotenv import load_dotenv
 
 

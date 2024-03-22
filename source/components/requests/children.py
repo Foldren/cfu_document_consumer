@@ -4,7 +4,7 @@ from components.enums import RateEnum
 
 @dataclass
 class CDeclarationBase:
-    inn: str
+    inn: int
     rate: RateEnum
     legalEntityID: str = None
     employeesCount: int = None  # -
@@ -12,12 +12,11 @@ class CDeclarationBase:
 
 @dataclass
 class CDeclarationOwner:
-    __slots__ = {"lastName", "firstName", "patronymic", "taxPayer", "phoneNumber"}
     lastName: str
     firstName: str
-    patronymic: str
     taxPayer: str  # -
     phoneNumber: str
+    patronymic: str = None
 
 
 @dataclass
@@ -25,7 +24,7 @@ class CDeclarationDeclaration:
     adjustmentNumber: str  # -
     taxPeriod: str  # -
     reportingYear: str
-    authorityCode: str  # -
+    authorityCode: str
     locationCode: str  # -
     oktmoCurrent: str
     oktmoOld: str = None  # -

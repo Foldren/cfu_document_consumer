@@ -5,7 +5,7 @@ from components.enums import StatusEnum
 @dataclass
 class CDeclaration:
     name: str
-    inn: str
+    inn: int
     date: str
     status: StatusEnum
     url: str = None
