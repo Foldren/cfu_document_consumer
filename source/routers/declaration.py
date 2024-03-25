@@ -8,7 +8,7 @@ from components.queues import declaration_queue
 from components.requests.declaration import CreateDeclarationRequest, GetDeclarationsRequest
 from components.responses.children import CDeclaration
 from components.responses.declaration import CreateDeclarationResponse, GetDeclarationsResponse
-from config import EXCEL_TEMPLATE_PATH
+from config import EXCEL_TEMPLATE_PATH, IS_THIS_LOCAL
 from db_models.declaration import Declaration, DeclarationStatus
 from modules.content_api import ContentApi
 from modules.excel import Excel
@@ -135,6 +135,10 @@ async def create_declaration(request: CreateDeclarationRequest):
     try:
         # Сохраняем в поток
         wb.save(output)
+
+        # if IS_THIS_LOCAL:
+        #     with open("test.xlsx", "wb") as f:
+        #         f.write(output.getvalue())
 
         # Загружаем в контентный микросервис файл
         content_response = await ContentApi(user_id=request.userID).upload(data=output.getvalue(), file_name=file_name)
