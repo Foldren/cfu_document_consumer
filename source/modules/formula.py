@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 
 class Formula:
@@ -11,19 +12,19 @@ class Formula:
     report_year: int
     month_ip_open: int
     day_ip_open: int
-    list_val_cells_110_to_113: list[int]
+    cells_110_to_113: list[int]
     workers_count: int
 
     def __init__(self, rate: int, report_year: int, month_ip_open: int, day_ip_open: int,
-                 list_val_cells_110_to_113: list[int], workers_count: int = None):
+                 cells_110_to_113: list[int], workers_count: int = None):
         self.rate = rate
         self.report_year = report_year
         self.month_ip_open = month_ip_open
         self.day_ip_open = day_ip_open
-        self.list_cells_110_to_113 = list_val_cells_110_to_113
-        self.workers_count = workers_count
+        self.cells_110_to_113 = cells_110_to_113
+        self.workers_count = workers_count if workers_count is not None else 1
 
-    async def __calculate_quarter_tax(self, val_cell: int, quarter: int):
+    async def __calculate_quarter_tax(self, val_cell: int, quarter: int) -> int:
         current_date = datetime.now()
 
         if self.report_year != current_date.year:
@@ -44,10 +45,10 @@ class Formula:
 
         return basic_tax + additional_tax
 
-    async def calculate_tax(self):
+    async def __calculate_tax(self) -> dict:
         result_cells = []
 
-        for val_cell in self.list_cells_110_to_113:
+        for val_cell in self.cells_110_to_113:
             quarter = (self.month_ip_open // 4) + 1
             quarter_tax = await self.__calculate_quarter_tax(val_cell=val_cell, quarter=quarter)
             result_cells.append(quarter_tax)
@@ -57,3 +58,40 @@ class Formula:
                 '142': max(0, result_cells[2] - result_cells[1] - result_cells[0]),
                 '143': max(0, result_cells[3] - result_cells[2] - result_cells[1] - result_cells[0])
                 }
+
+    async def get_codes(self):
+        tax_codes = await self.__calculate_tax()
+        base_codes = {'2_110': self.cells_110_to_113[0],
+                      '111': self.cells_110_to_113[1],
+                      '112': self.cells_110_to_113[2],
+                      '113': self.cells_110_to_113[3],
+                      '120': self.rate,
+                      '121': self.rate,
+                      '122': self.rate,
+                      '123': self.rate,
+                      '130': (self.rate * self.cells_110_to_113[0]) // 100,
+                      '131': (self.rate * self.cells_110_to_113[1]) // 100,
+                      '132': (self.rate * self.cells_110_to_113[2]) // 100,
+                      '133': (self.rate * self.cells_110_to_113[3]) // 100
+                      }
+
+        code_020 = max(0, base_codes['130'] - tax_codes['140'])
+        code_040 = max(0, base_codes['131'] - tax_codes['141'] - code_020)
+        code_050 = max(0, base_codes['131'] - tax_codes['141'] - code_020)
+
+        result_codes = {'020': code_020,
+                        # '030': 1,
+                        '040': code_040,
+                        '050': code_050,
+                        # '060': 1,
+                        '070': max(0, base_codes['132'] - tax_codes['142'] - (code_020 + code_040) - code_050),
+                        '080': max(0, base_codes['132'] - tax_codes['142'] - (code_020 + code_040) - code_050),
+                        # '090': 1,
+                        # '100': max(0, base_codes['133'] - tax_codes['143'] - (code_020 + code_040 + code_060)),
+                        # '1_110': self.cells_110_to_113[0],
+                        }
+
+        result_codes.update(tax_codes)
+        result_codes.update(base_codes)
+
+        return result_codes

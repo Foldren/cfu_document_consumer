@@ -7,24 +7,28 @@ ROW_OPTIONS = {
         'FIRST_NAME': {'first_col': 0, 'last_col': 80, 'index': 17},
         'PATRONYMIC': {'first_col': 0, 'last_col': 80, 'index': 19},
         'PHONE_NUMBER': {'first_col': 20, 'last_col': 60, 'index': 27},
+        'TAX_LAST_NAME': {'first_col': 1, 'last_col': 40, 'index': 35},
+        'TAX_FIRST_NAME': {'first_col': 1, 'last_col': 40, 'index': 37},
+        'TAX_PATRONYMIC': {'first_col': 1, 'last_col': 40, 'index': 39},
+        'TAX_IP': {'first_col': 1, 'last_col': 40, 'index': 42, 'rows': 8}
     },
     '1_1': {
         'OKTMO_010': {'first_col': 25, 'last_col': 35, 'index': 13},
-        # SECTION_11_FIELD_020 = []
-        # SECTION_11_FIELD_030 = []
-        # SECTION_11_FIELD_040 = []
-        # SECTION_11_FIELD_050 = []
-        # SECTION_11_FIELD_060 = []
-        # SECTION_11_FIELD_070 = []
-        # SECTION_11_FIELD_080 = []
-        # SECTION_11_FIELD_090 = []
-        # SECTION_11_FIELD_100 = []
-        # SECTION_11_FIELD_101 = []
-        # SECTION_11_FIELD_110 = []
+        '020': {'first_col': 25, 'last_col': 37, 'index': 15},
+        '030': {'first_col': 25, 'last_col': 35, 'index': 18},  # +
+        '040': {'first_col': 25, 'last_col': 37, 'index': 20},  # +
+        '050': {'first_col': 25, 'last_col': 37, 'index': 23},  # +
+        '060': {'first_col': 25, 'last_col': 35, 'index': 26},  # +
+        '070': {'first_col': 25, 'last_col': 37, 'index': 28},  # +
+        '080': {'first_col': 25, 'last_col': 37, 'index': 31},  # +
+        '090': {'first_col': 25, 'last_col': 35, 'index': 34},  # +
+        '100': {'first_col': 25, 'last_col': 37, 'index': 36},  # +
+        '101': {'first_col': 25, 'last_col': 37, 'index': 39},  # +
+        '110': {'first_col': 25, 'last_col': 37, 'index': 41},  # +
     },
     '2_1_1': {
         '101': {'first_col': 28, 'last_col': 28, 'index': 11},
-        # SECTION_211_FIELD_102 = []
+        '102': {'first_col': 28, 'last_col': 28, 'index': 15},  # +
         '110': {'first_col': 28, 'last_col': 39, 'index': 19},
         '111': {'first_col': 28, 'last_col': 39, 'index': 21},
         '112': {'first_col': 28, 'last_col': 39, 'index': 23},
@@ -33,17 +37,17 @@ ROW_OPTIONS = {
         '121': {'first_col': 28, 'last_col': 28, 'index': 29},
         '122': {'first_col': 28, 'last_col': 28, 'index': 31},
         '123': {'first_col': 28, 'last_col': 28, 'index': 33},
-        # SECTION_211_FIELD_124 = []
+        '124': {'first_col': 21, 'last_col': 39, 'index': 35},  # +
         '130': {'first_col': 28, 'last_col': 39, 'index': 38},
         '131': {'first_col': 28, 'last_col': 39, 'index': 40},
         '132': {'first_col': 28, 'last_col': 39, 'index': 42},
         '133': {'first_col': 28, 'last_col': 39, 'index': 44},
     },
     'EXTEND_2_1_1': {
-        # SECTION_211_FIELD_140 = []
-        # SECTION_211_FIELD_141 = []
-        # SECTION_211_FIELD_142 = []
-        # SECTION_211_FIELD_143 = []
+        '140': {'first_col': 27, 'last_col': 38, 'index': 11},
+        '141': {'first_col': 27, 'last_col': 38, 'index': 14},
+        '142': {'first_col': 27, 'last_col': 38, 'index': 17},
+        '143': {'first_col': 27, 'last_col': 38, 'index': 20},
     }
 }
 

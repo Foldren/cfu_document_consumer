@@ -29,20 +29,39 @@ class Excel:
             raise ValueError('Не верно заданы опции строки декларации.')
 
         list_symbols = list(text.upper())
+
         i = row_options['first_col']
         k = 0
-        while (i <= row_options['last_col']) and (k < len(list_symbols)):
-            try:
-                cell_index = f"{self.cols[i]}{row_options['index']}"
-                self.ws[cell_index] = list_symbols[k]
-            except IndexError:
-                break
-            k += 1
+        if 'rows' not in row_options:
+            while (i <= row_options['last_col']) and (k < len(list_symbols)):
+                try:
+                    cell_index = f"{self.cols[i]}{row_options['index']}"
+                    self.ws[cell_index] = list_symbols[k]
+                except IndexError:
+                    break
+                k += 1
 
-            if is_title_list:
-                i += 2
-            else:
-                i += 1
+                if is_title_list:
+                    i += 2
+                else:
+                    i += 1
+        else:
+            r = 0
+            while (r <= (row_options['rows'] * 2) - 2) and (k < len(list_symbols)):
+                while (i <= row_options['last_col']) and (k < len(list_symbols)):
+                    try:
+                        cell_index = f"{self.cols[i]}{row_options['index'] + r}"
+                        self.ws[cell_index] = list_symbols[k]
+                    except IndexError:
+                        break
+                    k += 1
+
+                    if is_title_list:
+                        i += 2
+                    else:
+                        i += 1
+                i = row_options['first_col']
+                r += 2  # Пробегаем через строку
 
     async def insert_rows_to_ws(self, list_rows: list[dict], is_title_list: bool = False) -> None:
         """

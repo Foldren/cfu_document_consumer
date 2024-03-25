@@ -6,15 +6,16 @@ from components.enums import RateEnum
 class CDeclarationBase:
     inn: int
     rate: RateEnum
+    createDate: str
     legalEntityID: str = None
-    employeesCount: int = None  # -
+    employeesCount: int = None
 
 
 @dataclass
 class CDeclarationOwner:
     lastName: str
     firstName: str
-    taxPayer: str  # -
+    taxPayer: str
     phoneNumber: str
     patronymic: str = None
 
