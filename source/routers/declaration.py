@@ -136,8 +136,6 @@ async def create_declaration(request: CreateDeclarationRequest):
         # Сохраняем в поток
         wb.save(output)
 
-        wb.save("test.xlsx")
-
         # Загружаем в контентный микросервис файл
         content_response = await ContentApi(user_id=request.userID).upload(data=output.getvalue(), file_name=file_name)
 
