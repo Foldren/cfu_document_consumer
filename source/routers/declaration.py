@@ -1,6 +1,8 @@
 import traceback
 from datetime import datetime
 from io import BytesIO
+from json import JSONDecodeError
+
 from faststream.rabbit import RabbitRouter
 from openpyxl.reader.excel import load_workbook
 from components.declaration_fields import ROW_OPTIONS
@@ -147,7 +149,10 @@ async def create_declaration(request: CreateDeclarationRequest):
         declaration.status = DeclarationStatus.success
         declaration.image_url = content_response.fileName
         await declaration.save()
-
+    except JSONDecodeError:
+        declaration.status = DeclarationStatus.error
+        await declaration.save()
+        print("Ошибка подключения 403, (контентный микросервис).")
     except Exception:
         traceback.print_exc()
         declaration.status = DeclarationStatus.error
