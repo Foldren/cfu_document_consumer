@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 from io import BytesIO
 from faststream.rabbit import RabbitRouter
@@ -148,7 +149,9 @@ async def create_declaration(request: CreateDeclarationRequest):
         await declaration.save()
 
     except Exception:
+        traceback.print_exc()
         declaration.status = DeclarationStatus.error
+        await declaration.save()
 
     return CreateDeclarationResponse(declarationID=declaration.id)
 
