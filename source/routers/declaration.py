@@ -1,16 +1,16 @@
-import traceback
 from datetime import datetime
 from io import BytesIO
 from json import JSONDecodeError
-
+from faststream import Logger
 from faststream.rabbit import RabbitRouter
 from openpyxl.reader.excel import load_workbook
 from components.declaration_fields import ROW_OPTIONS
 from components.decorators import consumer
 from components.queues import declaration_queue
-from components.requests.declaration import CreateDeclarationRequest, GetDeclarationsRequest
+from components.requests.declaration import CreateDeclarationRequest, GetDeclarationsRequest, RemoveDeclarationRequest
 from components.responses.children import CDeclaration
-from components.responses.declaration import CreateDeclarationResponse, GetDeclarationsResponse
+from components.responses.declaration import CreateDeclarationResponse, GetDeclarationsResponse, \
+    RemoveDeclarationResponse
 from config import EXCEL_TEMPLATE_PATH, IS_THIS_LOCAL
 from db_models.declaration import Declaration, DeclarationStatus
 from modules.content_api import ContentApi
@@ -42,6 +42,7 @@ async def create_declaration(request: CreateDeclarationRequest):
 
     formula = Formula(rate=request.base.rate,
                       report_year=int(request.declaration.reportingYear),
+                      year_ip_open=date_ip_open.year,
                       month_ip_open=date_ip_open.month,
                       day_ip_open=date_ip_open.day,
                       cells_110_to_113=[request.revenue.threeMonths, request.revenue.sixMonths,
@@ -139,9 +140,9 @@ async def create_declaration(request: CreateDeclarationRequest):
         # Сохраняем в поток
         wb.save(output)
 
-        # if IS_THIS_LOCAL:
-        #     with open("test.xlsx", "wb") as f:
-        #         f.write(output.getvalue())
+        if IS_THIS_LOCAL:
+            with open("test.xlsx", "wb") as f:
+                f.write(output.getvalue())
 
         # Загружаем в контентный микросервис файл
         content_response = await ContentApi(user_id=request.userID).upload(data=output.getvalue(), file_name=file_name)
@@ -149,14 +150,16 @@ async def create_declaration(request: CreateDeclarationRequest):
         declaration.status = DeclarationStatus.success
         declaration.image_url = content_response.fileName
         await declaration.save()
+
     except JSONDecodeError:
         declaration.status = DeclarationStatus.error
         await declaration.save()
-        print("Ошибка подключения 403, (контентный микросервис).")
-    except Exception:
-        traceback.print_exc()
+        raise Exception("Ошибка подключения 403, (контентный микросервис).")
+
+    except Exception as e:
         declaration.status = DeclarationStatus.error
         await declaration.save()
+        raise Exception(e)
 
     return CreateDeclarationResponse(declarationID=declaration.id)
 
@@ -168,7 +171,8 @@ async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclaratio
 
     lit_declarations_r = []
     for dclr in declarations:
-        lit_declarations_r.append(CDeclaration(name=dclr.file_name,
+        lit_declarations_r.append(CDeclaration(id=dclr.id,
+                                               name=dclr.file_name,
                                                inn=dclr.legal_entity_inn,
                                                date=dclr.date.strftime('%Y-%m-%d'),
                                                status=dclr.status,
@@ -176,3 +180,21 @@ async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclaratio
                                                ))
 
     return GetDeclarationsResponse(declarations=lit_declarations_r)
+
+
+@consumer(router=router, queue=declaration_queue, pattern="declaration.declaration-remove",
+          request=RemoveDeclarationRequest)
+async def remove_declaration(request: RemoveDeclarationRequest) -> RemoveDeclarationResponse:
+    declaration = await Declaration.filter(id=request.id, user_id=request.userID).first()
+
+    if not declaration:
+        raise Exception("Декларация не найдена.")
+
+    # Если есть ссылка удаляем файл на контентном мс
+    if declaration.image_url is not None:
+        await ContentApi(user_id=request.userID).delete(file_url=declaration.image_url)
+
+    # Удаляем декларацию из бд
+    await declaration.delete()
+
+    return RemoveDeclarationResponse(id=request.id)

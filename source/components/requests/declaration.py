@@ -19,6 +19,14 @@ class GetDeclarationsRequest:
     userID: str
 
 
+@dataclass
+class RemoveDeclarationRequest:
+    __slots__ = {"id", "userID"}
+    id: int
+    userID: str
+
+
+
 
 
 

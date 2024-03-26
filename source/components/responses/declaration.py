@@ -12,3 +12,9 @@ class CreateDeclarationResponse:
 class GetDeclarationsResponse:
     __slots__ = {"declarations"}
     declarations: list[CDeclaration]
+
+
+@dataclass
+class RemoveDeclarationResponse:
+    __slots__ = {"id"}
+    id: int

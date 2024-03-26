@@ -1,6 +1,5 @@
-from traceback import print_exc
 from typing import Any
-from faststream import Context
+from faststream import Context, Logger
 from faststream.rabbit import RabbitQueue, RabbitRouter
 from components.responses.rpc import RpcResponse, RpcError
 
@@ -8,7 +7,7 @@ from components.responses.rpc import RpcResponse, RpcError
 def consumer(router: RabbitRouter, queue: RabbitQueue, pattern: str, request: Any = Any):
     def _rpc_consumer_dec(func):
         @router.subscriber(queue=queue, filter=lambda msg: msg.decoded_body['pattern'] == pattern)
-        async def _wrapper(request_obj: request = Context("message.decoded_body.data", cast=True)):
+        async def _wrapper(logger: Logger, request_obj: request = Context("message.decoded_body.data", cast=True)):
             response = RpcResponse()
             try:
                 if request is not Any:
@@ -16,7 +15,7 @@ def consumer(router: RabbitRouter, queue: RabbitQueue, pattern: str, request: An
                 else:
                     response.data = await func()
             except Exception as e:
-                print_exc()
+                logger.error(e)
                 response.error = RpcError(message=str(e))
                 response.data = None
 

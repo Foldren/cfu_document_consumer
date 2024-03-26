@@ -4,6 +4,7 @@ from components.enums import StatusEnum
 
 @dataclass
 class CDeclaration:
+    id: int
     name: str
     inn: int
     date: str

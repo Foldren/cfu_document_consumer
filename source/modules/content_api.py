@@ -22,8 +22,18 @@ class ContentApi:
     async def upload(self, data: bytes, file_name: str) -> UploadFileResponse:
         async with AsyncClient(verify=True) as async_session:
             response = await async_session.post(
-                url=CONTENT_API_URL + "/files/upload",
+                url=CONTENT_API_URL + "/upload",
                 files={'file': (file_name, data, 'application/xlsx')},
                 headers=self.headers
             )
             return UploadFileResponse.from_dict(response.json())
+
+    async def delete(self, file_url: str):
+        async with AsyncClient(verify=True) as async_session:
+            response = await async_session.delete(
+                url=file_url,
+                headers=self.headers
+            )
+
+            if response.status_code != 200:
+                raise Exception(f"Ошибка при удалении: {response.text}")
