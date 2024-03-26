@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 
 
 class Formula:
@@ -76,16 +75,18 @@ class Formula:
                       }
 
         code_020 = max(0, base_codes['130'] - tax_codes['140'])
-        code_040 = max(0, base_codes['131'] - tax_codes['141'] - code_020)
-        code_050 = max(0, base_codes['131'] - tax_codes['141'] - code_020)
+        code_040 = base_codes['131'] - tax_codes['141'] - code_020
+        code_050 = base_codes['131'] - tax_codes['141'] - code_020
+        code_070 = base_codes['132'] - tax_codes['142'] - (code_020 + code_040) - code_050
+        code_080 = base_codes['132'] - tax_codes['142'] - (code_020 + code_040) - code_050
 
         result_codes = {'020': code_020,
                         # '030': 1,
-                        '040': code_040,
-                        '050': code_050,
+                        '040': code_040 if code_040 >= 0 else '',
+                        '050': code_050 if code_050 < 0 else '',
                         # '060': 1,
-                        '070': max(0, base_codes['132'] - tax_codes['142'] - (code_020 + code_040) - code_050),
-                        '080': max(0, base_codes['132'] - tax_codes['142'] - (code_020 + code_040) - code_050),
+                        '070': code_070 if code_070 >= 0 else '',
+                        '080': code_080 if code_080 < 0 else '',
                         # '090': 1,
                         # '100': max(0, base_codes['133'] - tax_codes['143'] - (code_020 + code_040 + code_060)),
                         # '1_110': self.cells_110_to_113[0],
