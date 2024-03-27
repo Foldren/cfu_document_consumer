@@ -20,6 +20,13 @@ class ContentApi:
         self.headers = {'Authorization': f'Bearer {self.access_token}'}
 
     async def upload(self, data: bytes, file_name: str) -> UploadFileResponse:
+        """
+        Метод для загрузки файла в байтах в файловую систему контентого мс.
+        :param data: данные файла
+        :param file_name: имя файла с расширением
+        :return: ответ от контентного мс UploadFileResponse
+        """
+
         async with AsyncClient(verify=True) as async_session:
             response = await async_session.post(
                 url=CONTENT_API_URL + "/upload",
@@ -28,7 +35,12 @@ class ContentApi:
             )
             return UploadFileResponse.from_dict(response.json())
 
-    async def delete(self, file_url: str):
+    async def delete(self, file_url: str) -> None:
+        """
+        Метод для удаления файла из файловой системы контентого мс.
+        :param file_url: ссылка на файл
+        """
+
         async with AsyncClient(verify=True) as async_session:
             response = await async_session.delete(
                 url=file_url,

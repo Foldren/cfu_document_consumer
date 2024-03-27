@@ -1,7 +1,6 @@
 from datetime import datetime
 from io import BytesIO
 from json import JSONDecodeError
-from faststream import Logger
 from faststream.rabbit import RabbitRouter
 from openpyxl.reader.excel import load_workbook
 from components.declaration_fields import ROW_OPTIONS
@@ -23,6 +22,13 @@ router = RabbitRouter()
 @consumer(router=router, queue=declaration_queue, pattern="declaration.create-declaration",
           request=CreateDeclarationRequest)
 async def create_declaration(request: CreateDeclarationRequest):
+    """
+    Роут на создание декларации. Подсчитывает значения полей декларации, добавляет их в шаблон
+    declaration_template.xlsx, после чего сохраняет файл в поток в байтах и сохраняет в контентном мс.
+    :param request: request объект на создание декларации CreateDeclarationRequest
+    :return: response объект на создание декларации CreateDeclarationResponse
+    """
+
     current_date = datetime.now()
     file_name = (f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
                  f"{current_date.strftime('%Y-%m-%d')}.xlsx")  # Имя файла fio-inn-date
@@ -140,6 +146,7 @@ async def create_declaration(request: CreateDeclarationRequest):
         # Сохраняем в поток
         wb.save(output)
 
+        # Сохраняем тестовый файл
         if IS_THIS_LOCAL:
             with open("test.xlsx", "wb") as f:
                 f.write(output.getvalue())
@@ -151,11 +158,13 @@ async def create_declaration(request: CreateDeclarationRequest):
         declaration.image_url = content_response.fileName
         await declaration.save()
 
+    # В случае если не сработал nginx или vpn
     except JSONDecodeError:
         declaration.status = DeclarationStatus.error
         await declaration.save()
         raise Exception("Ошибка подключения 403, (контентный микросервис).")
 
+    # В случае ошибки со стороны контентного мс
     except Exception as e:
         declaration.status = DeclarationStatus.error
         await declaration.save()
@@ -167,6 +176,12 @@ async def create_declaration(request: CreateDeclarationRequest):
 @consumer(router=router, queue=declaration_queue, pattern="declaration.get-declaration-list",
           request=GetDeclarationsRequest)
 async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclarationsResponse:
+    """
+    Роут получение списка деклараций из бд.
+    :param request: request объект на создание декларации GetDeclarationsRequest
+    :return: response объект на создание декларации GetDeclarationsResponse
+    """
+
     declarations = await Declaration.filter(user_id=request.userID).all()
 
     lit_declarations_r = []
@@ -185,6 +200,12 @@ async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclaratio
 @consumer(router=router, queue=declaration_queue, pattern="declaration.declaration-remove",
           request=RemoveDeclarationRequest)
 async def remove_declaration(request: RemoveDeclarationRequest) -> RemoveDeclarationResponse:
+    """
+    Роут на удаление декларации. Также удаляет ее из файловой системы контентного мс.
+    :param request: request объект на создание декларации RemoveDeclarationRequest
+    :return: response объект на создание декларации RemoveDeclarationResponse
+    """
+    
     declaration = await Declaration.filter(id=request.id, user_id=request.userID).first()
 
     if not declaration:

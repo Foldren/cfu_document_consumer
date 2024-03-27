@@ -6,28 +6,28 @@ from components.enums import RateEnum
 class CDeclarationBase:
     inn: int
     rate: RateEnum
-    createDate: str
+    createDate: str  # дата открытия ИП
     legalEntityID: str = None
-    employeesCount: int = None
+    employeesCount: int = None  # кол-во сотрудников
 
 
 @dataclass
 class CDeclarationOwner:
-    lastName: str
-    firstName: str
-    taxPayer: str
+    lastName: str  # фамилия
+    firstName: str  # имя
+    taxPayer: str  # поле налогоплатильщика
     phoneNumber: str
-    patronymic: str = None
+    patronymic: str = None  # отчество
 
 
 @dataclass
 class CDeclarationDeclaration:
     adjustmentNumber: str  # -
     taxPeriod: str  # -
-    reportingYear: str
-    authorityCode: str
+    reportingYear: str  # отчётный год
+    authorityCode: str  # код налоговой инспекции
     locationCode: str  # -
-    oktmoCurrent: str
+    oktmoCurrent: str  # код ОКТМО
     oktmoOld: str = None  # -
     oktmoChangeDate: str = None  # -
 

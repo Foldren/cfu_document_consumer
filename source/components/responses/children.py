@@ -8,5 +8,5 @@ class CDeclaration:
     name: str
     inn: int
     date: str
-    status: StatusEnum
+    status: StatusEnum  # статус формирования декларации
     url: str = None

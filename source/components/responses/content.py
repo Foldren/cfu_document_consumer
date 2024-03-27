@@ -5,4 +5,4 @@ from dataclasses_json import DataClassJsonMixin
 @dataclass
 class UploadFileResponse(DataClassJsonMixin):
     __slots__ = {"fileName"}
-    fileName: str
+    fileName: str  # ссылка на файл
