@@ -43,7 +43,7 @@ class Formula:
                 basic_tax = ((((45842 / 12) / number_days_in_m_ip_open) * max(1,
                                                                               number_days_in_m_ip_open - self.day_ip_open + 1)) +
                              ((45842 / 12) * (3 - self.__month_quarter_indexes[self.month_ip_open])))
-            else:  # quarter_cell != quarter_open !!! 7640
+            else:  # quarter_cell != quarter_open
                 basic_tax = 45842 / 4
         else:
             basic_tax = 45842 / 4  # * max(1, 4 - quarter_open)
@@ -101,17 +101,12 @@ class Formula:
         code_142_basic_tax = basic_tax_cells[2] + basic_tax_cells[1] + basic_tax_cells[0]
         code_143_basic_tax = basic_tax_cells[3] + basic_tax_cells[2] + basic_tax_cells[1] + basic_tax_cells[0]
 
-        code_140_add_tax = add_tax_cells[0]
-        code_141_add_tax = add_tax_cells[1]  # - result_cells[0]['additional_tax']
-        code_142_add_tax = add_tax_cells[2]  # - result_cells[1]['additional_tax'] -
-        # result_cells[0]['additional_tax'])
-        code_143_add_tax = add_tax_cells[3]  # - result_cells[2]['additional_tax'] -
-        # result_cells[1]['additional_tax'] - result_cells[0]['additional_tax'])
-
-        print(code_140_add_tax)
-        print(code_141_add_tax)
-        print(code_142_add_tax)
-        print(code_143_add_tax)
+        # code_140_add_tax = add_tax_cells[0]
+        # code_141_add_tax = add_tax_cells[1]  # - result_cells[0]['additional_tax']
+        # code_142_add_tax = add_tax_cells[2]  # - result_cells[1]['additional_tax'] -
+        # # result_cells[0]['additional_tax'])
+        # code_143_add_tax = add_tax_cells[3]  # - result_cells[2]['additional_tax'] -
+        # # result_cells[1]['additional_tax'] - result_cells[0]['additional_tax'])
 
         return {'140': max(0, round(code_140_basic_tax + add_tax_cells[0])),
                 '141': max(0, round(code_141_basic_tax + add_tax_cells[1])),
