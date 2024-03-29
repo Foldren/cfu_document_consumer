@@ -102,11 +102,9 @@ class Formula:
         code_143_basic_tax = basic_tax_cells[3] + basic_tax_cells[2] + basic_tax_cells[1] + basic_tax_cells[0]
 
         # code_140_add_tax = add_tax_cells[0]
-        # code_141_add_tax = add_tax_cells[1]  # - result_cells[0]['additional_tax']
-        # code_142_add_tax = add_tax_cells[2]  # - result_cells[1]['additional_tax'] -
-        # # result_cells[0]['additional_tax'])
-        # code_143_add_tax = add_tax_cells[3]  # - result_cells[2]['additional_tax'] -
-        # # result_cells[1]['additional_tax'] - result_cells[0]['additional_tax'])
+        # code_141_add_tax = add_tax_cells[1] - add_tax_cells[0]
+        # code_142_add_tax = add_tax_cells[2] - add_tax_cells[1] - add_tax_cells[0]
+        # code_143_add_tax = add_tax_cells[3] - add_tax_cells[2] - add_tax_cells[1] - add_tax_cells[0]
 
         return {'140': max(0, round(code_140_basic_tax + add_tax_cells[0])),
                 '141': max(0, round(code_141_basic_tax + add_tax_cells[1])),

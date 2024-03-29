@@ -7,6 +7,7 @@ class DeclarationStatus(str, Enum):
     process = "process"
     success = "success"
     error = "error"
+    no_file = "no_file"
 
 
 class Declaration(Model):

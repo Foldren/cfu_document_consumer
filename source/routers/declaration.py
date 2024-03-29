@@ -1,3 +1,4 @@
+from asyncio import sleep
 from datetime import datetime
 from io import BytesIO
 from json import JSONDecodeError
@@ -182,7 +183,7 @@ async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclaratio
     :return: response объект на создание декларации GetDeclarationsResponse
     """
 
-    declarations = await Declaration.filter(user_id=request.userID).all()
+    declarations = await Declaration.filter(user_id=request.userID, status__not='no_file').all()
 
     lit_declarations_r = []
     for dclr in declarations:
@@ -213,9 +214,11 @@ async def remove_declaration(request: RemoveDeclarationRequest) -> RemoveDeclara
 
     # Если есть ссылка удаляем файл на контентном мс
     if declaration.image_url is not None:
-        await ContentApi(user_id=request.userID).delete(file_url=declaration.image_url)
-
-    # Удаляем декларацию из бд
-    await declaration.delete()
+        try:
+            await ContentApi(user_id=request.userID).delete(file_url=declaration.image_url)
+            # Удаляем декларацию из бд
+            await declaration.delete()
+        except IndexError:
+            declaration.status = 'no_file'
 
     return RemoveDeclarationResponse(id=request.id)

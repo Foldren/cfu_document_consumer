@@ -1,3 +1,4 @@
+from asyncio import sleep
 from datetime import datetime
 import jwt
 from httpx import AsyncClient
@@ -48,4 +49,5 @@ class ContentApi:
             )
 
             if response.status_code != 200:
-                raise Exception(f"Ошибка при удалении: {response.text}")
+                raise IndexError(response.text)
+
