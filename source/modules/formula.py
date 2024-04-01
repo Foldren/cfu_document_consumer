@@ -145,25 +145,31 @@ class Formula:
         code_132 = round((self.rate * self.cells_110_to_113[2]) / 100)
         code_133 = round((self.rate * self.cells_110_to_113[3]) / 100)
         code_020 = max(0, code_130 - tax_codes['140'])
-        code_040 = code_131 - tax_codes['141'] - code_020
-        code_050 = code_131 - tax_codes['141'] - code_020
-        code_070 = code_132 - tax_codes['142'] - (code_020 + code_040) - code_050
-        code_080 = code_132 - tax_codes['142'] - (code_020 + code_040) - code_050
-        code_100 = (code_133 - tax_codes['143']) - (code_020 + code_040 - code_050 + code_070 - code_080)  # - 101
         code_101 = 0
-        code_110 = code_100  # (code_020 + code_040 - code_050 + code_070 - code_080) - (code_133 - tax_codes['143'])
+
+        number_040_050 = code_131 - tax_codes['141'] - code_020
+        code_040 = number_040_050 if number_040_050 > 0 else 0
+        code_050 = abs(number_040_050) if number_040_050 < 0 else 0
+
+        number_070_080 = code_132 - tax_codes['142'] - (code_020 + code_040 - code_050)
+        code_070 = number_070_080 if number_070_080 > 0 else 0
+        code_080 = abs(number_070_080) if number_070_080 < 0 else 0
+
+        number_100_110 = (code_133 - tax_codes['143']) - (code_020 + code_040 - code_050 + code_070 - code_080)
+        code_100 = number_100_110 if number_100_110 > 0 else 0
+        code_110 = abs(number_100_110) if number_100_110 < 0 else 0
 
         codes = {'020': code_020,
                  # '030': код налоговой (пока не надо),
-                 '040': code_040 if code_040 >= 0 else '',
-                 '050': code_050 if code_050 < 0 else '',
+                 '040': code_040,
+                 '050': code_050,
                  # '060': код налоговой (пока не надо),
-                 '070': code_070 if code_070 >= 0 else '',
-                 '080': code_080 if code_080 < 0 else '',
+                 '070': code_070,
+                 '080': code_080,
                  # '090': код налоговой (пока не надо),
-                 '100': code_100 if code_100 >= 0 else '',
+                 '100': code_100,
                  '101': code_101,
-                 '1_110': code_110 if code_110 < 0 else '',
+                 '1_110': code_110,
                  '2_110': self.cells_110_to_113[0],
                  '111': self.cells_110_to_113[1],
                  '112': self.cells_110_to_113[2],
@@ -180,5 +186,9 @@ class Formula:
                  }
 
         codes.update(tax_codes)
+
+        for key, code in codes.items():
+            if code == 0:
+                codes[key] = ''
 
         return codes
