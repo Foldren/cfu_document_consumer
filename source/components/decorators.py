@@ -1,3 +1,4 @@
+from traceback import print_exc
 from typing import Any
 from faststream import Context, Logger
 from faststream.rabbit import RabbitQueue, RabbitRouter

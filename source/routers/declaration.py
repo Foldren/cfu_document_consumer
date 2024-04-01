@@ -1,4 +1,3 @@
-from asyncio import sleep
 from datetime import datetime
 from io import BytesIO
 from json import JSONDecodeError
@@ -26,7 +25,7 @@ async def create_declaration(request: CreateDeclarationRequest):
     """
     Роут на создание декларации. Подсчитывает значения полей декларации, добавляет их в шаблон
     declaration_template.xlsx, после чего сохраняет файл в поток в байтах и сохраняет в контентном мс.
-    :param request: request объект на создание декларации CreateDeclarationRequest
+    :param request: объект на создание декларации CreateDeclarationRequest
     :return: response объект на создание декларации CreateDeclarationResponse
     """
 
@@ -99,6 +98,12 @@ async def create_declaration(request: CreateDeclarationRequest):
         {'text': codes['070'], 'row_options': ROW_OPTIONS['1_1']['070']},
         # Вставляем строку 050
         {'text': codes['080'], 'row_options': ROW_OPTIONS['1_1']['080']},
+        # Вставляем строку 100
+        {'text': codes['100'], 'row_options': ROW_OPTIONS['1_1']['100']},
+        # Вставляем строку 101
+        {'text': codes['101'], 'row_options': ROW_OPTIONS['1_1']['101']},
+        # Вставляем строку 110
+        {'text': codes['1_110'], 'row_options': ROW_OPTIONS['1_1']['110']},
     ])
 
     ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
@@ -179,7 +184,7 @@ async def create_declaration(request: CreateDeclarationRequest):
 async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclarationsResponse:
     """
     Роут получение списка деклараций из бд.
-    :param request: request объект на создание декларации GetDeclarationsRequest
+    :param request: объект на создание декларации GetDeclarationsRequest
     :return: response объект на создание декларации GetDeclarationsResponse
     """
 
@@ -203,7 +208,7 @@ async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclaratio
 async def remove_declaration(request: RemoveDeclarationRequest) -> RemoveDeclarationResponse:
     """
     Роут на удаление декларации. Также удаляет ее из файловой системы контентного мс.
-    :param request: request объект на создание декларации RemoveDeclarationRequest
+    :param request: объект на создание декларации RemoveDeclarationRequest
     :return: response объект на создание декларации RemoveDeclarationResponse
     """
     
