@@ -60,6 +60,7 @@ class Formula:
         calculate_next_ad_tax = True
         if val_cell > 300000:
             additional_tax = (float(val_cell) - 300000.0) * 0.01
+
             if self.workers_count is not None:
                 if self.workers_count > 0:
                     if additional_tax > (257061 / 2):
@@ -90,7 +91,14 @@ class Formula:
 
         for val_cell in self.cells_110_to_113:
             basic_tax = await self.__calculate_quarter_basic_tax(val_cell=val_cell)
-            add_tax = 0.0
+
+            if self.workers_count is not None:
+                if self.workers_count > 0:
+                    add_tax = (257061 / 2)
+                else:
+                    raise ValueError("Не может быть <= 0 сотрудников.")
+            else:
+                add_tax = 257061
 
             # Если доп. налог превысил максимальное значение, последующие не считаем
             if calculate_ad_tax_flag:
@@ -107,28 +115,10 @@ class Formula:
                                   basic_tax_cells[2] + basic_tax_cells[1] + basic_tax_cells[0],
                                   basic_tax_cells[3] + basic_tax_cells[2] + basic_tax_cells[1] + basic_tax_cells[0]]
 
-        # В доп. налоге суммируем за предыдущие кварталы с ограничением
-        code_140_143_add_tax = []
-        for i, add_tax in enumerate(add_tax_cells):
-            if i > 0:
-                add_tax = sum(add_tax_cells[0:i])
-
-            if self.workers_count is not None:
-                if self.workers_count > 0:
-                    if add_tax > (257061 / 2):
-                        add_tax = (257061 / 2)
-                else:
-                    raise ValueError("Не может быть <= 0 сотрудников.")
-            else:
-                if add_tax > 257061:
-                    add_tax = 257061
-
-            code_140_143_add_tax.append(add_tax)
-
-        return {'140': max(0, round(code_140_143_basic_tax[0] + code_140_143_add_tax[0])),
-                '141': max(0, round(code_140_143_basic_tax[1] + code_140_143_add_tax[1])),
-                '142': max(0, round(code_140_143_basic_tax[2] + code_140_143_add_tax[2])),
-                '143': max(0, round(code_140_143_basic_tax[3] + code_140_143_add_tax[3]))
+        return {'140': max(0, round(code_140_143_basic_tax[0] + add_tax_cells[0])),
+                '141': max(0, round(code_140_143_basic_tax[1] + add_tax_cells[1])),
+                '142': max(0, round(code_140_143_basic_tax[2] + add_tax_cells[2])),
+                '143': max(0, round(code_140_143_basic_tax[3] + add_tax_cells[3]))
                 }
 
     async def get_codes(self) -> dict[str, int | str]:
@@ -149,15 +139,15 @@ class Formula:
 
         number_040_050 = code_131 - tax_codes['141'] - code_020
         code_040 = number_040_050 if number_040_050 > 0 else 0
-        code_050 = abs(number_040_050) if number_040_050 < 0 else 0
+        code_050 = number_040_050 if number_040_050 < 0 else 0
 
         number_070_080 = code_132 - tax_codes['142'] - (code_020 + code_040 - code_050)
         code_070 = number_070_080 if number_070_080 > 0 else 0
-        code_080 = abs(number_070_080) if number_070_080 < 0 else 0
+        code_080 = number_070_080 if number_070_080 < 0 else 0
 
         number_100_110 = (code_133 - tax_codes['143']) - (code_020 + code_040 - code_050 + code_070 - code_080)
         code_100 = number_100_110 if number_100_110 > 0 else 0
-        code_110 = abs(number_100_110) if number_100_110 < 0 else 0
+        code_110 = number_100_110 if number_100_110 < 0 else 0
 
         codes = {'020': code_020,
                  # '030': код налоговой (пока не надо),

@@ -17,7 +17,8 @@ class Declaration(Model):
     file_name = CharField(max_length=170, index=True)
     date = DateField(index=True)
     legal_entity_inn = TextField(maxlength=30, null=True)
-    image_url = CharField(max_length=300, null=True)
+    xlsx_image_url = CharField(max_length=300, null=True)
+    xml_image_url = CharField(max_length=300, null=True)
     status = CharEnumField(enum_type=DeclarationStatus, description='Статус декларации',
                            default=DeclarationStatus.process)
 

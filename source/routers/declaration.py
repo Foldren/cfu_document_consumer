@@ -15,6 +15,7 @@ from db_models.declaration import Declaration, DeclarationStatus
 from modules.content_api import ContentApi
 from modules.excel import Excel
 from modules.formula import Formula
+from modules.xml import XML
 
 router = RabbitRouter()
 
@@ -30,19 +31,20 @@ async def create_declaration(request: CreateDeclarationRequest):
     """
 
     current_date = datetime.now()
-    file_name = (f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
-                 f"{current_date.strftime('%Y-%m-%d')}.xlsx")  # Имя файла fio-inn-date
+    xlsx_file_name = (
+        f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
+        f"{current_date.strftime('%Y-%m-%d')}.xlsx")  # Имя файла fio-inn-date
 
     # Создаем декларацию, указываем статус proccess по умолчанию
     declaration = await Declaration.create(
         user_id=request.userID,
-        file_name=file_name,
+        file_name=xlsx_file_name,
         date=current_date,
         legal_entity_inn=request.base.inn,
         legal_entity_id=request.base.legalEntityID
     )
 
-    output = BytesIO()
+    xlsx_stream = BytesIO()
     wb = load_workbook(filename=EXCEL_TEMPLATE_PATH)
     date_ip_open = datetime.strptime(request.base.createDate, '%Y-%m-%d')
 
@@ -93,17 +95,17 @@ async def create_declaration(request: CreateDeclarationRequest):
         # Вставляем строку 040
         {'text': codes['040'], 'row_options': ROW_OPTIONS['1_1']['040']},
         # Вставляем строку 050
-        {'text': codes['050'], 'row_options': ROW_OPTIONS['1_1']['050']},
+        {'text': abs(codes['050']), 'row_options': ROW_OPTIONS['1_1']['050']},
         # Вставляем строку 050
         {'text': codes['070'], 'row_options': ROW_OPTIONS['1_1']['070']},
         # Вставляем строку 050
-        {'text': codes['080'], 'row_options': ROW_OPTIONS['1_1']['080']},
+        {'text': abs(codes['080']), 'row_options': ROW_OPTIONS['1_1']['080']},
         # Вставляем строку 100
         {'text': codes['100'], 'row_options': ROW_OPTIONS['1_1']['100']},
         # Вставляем строку 101
         {'text': codes['101'], 'row_options': ROW_OPTIONS['1_1']['101']},
         # Вставляем строку 110
-        {'text': codes['1_110'], 'row_options': ROW_OPTIONS['1_1']['110']},
+        {'text': abs(codes['1_110']), 'row_options': ROW_OPTIONS['1_1']['110']},
     ])
 
     ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
@@ -148,20 +150,44 @@ async def create_declaration(request: CreateDeclarationRequest):
         {'text': codes['143'], 'row_options': ROW_OPTIONS['EXTEND_2_1_1']['143']},
     ])
 
+    # Сохраняем в поток
+    wb.save(xlsx_stream)
+
+    # Генерим xml файл
+    xml_file_name = (
+        f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
+        f"{current_date.strftime('%Y-%m-%d')}.xml")  # Имя файла fio-inn-date
+    xml_bytes = await XML.form_xml_bytes_file(inn=request.base.inn, last_name=request.owner.lastName,
+                                              first_name=request.owner.firstName,
+                                              patronymic=request.owner.patronymic,
+                                              report_year=request.declaration.reportingYear,
+                                              authority_code=request.declaration.authorityCode,
+                                              octmo_code=request.declaration.oktmoCurrent, rate=request.base.rate,
+                                              workers_count=request.base.employeesCount,
+                                              phone_number=request.owner.phoneNumber,
+                                              codes=codes)
+    xml_stream = BytesIO(xml_bytes)
+
+    # Сохраняем тестовый файл
+    if IS_THIS_LOCAL:
+        with open("test.xlsx", "wb") as f:
+            f.write(xlsx_stream.getvalue())
+        with open("test.xml", "wb") as f:
+            f.write(xml_stream.getvalue())
+
     try:
-        # Сохраняем в поток
-        wb.save(output)
+        # Загружаем в контентный микросервис файл xlsx
+        xlsx_content_resp = await ContentApi(user_id=request.userID).upload(data=xlsx_stream.getvalue(),
+                                                                            file_name=xlsx_file_name)
 
-        # Сохраняем тестовый файл
-        if IS_THIS_LOCAL:
-            with open("test.xlsx", "wb") as f:
-                f.write(output.getvalue())
-
-        # Загружаем в контентный микросервис файл
-        content_response = await ContentApi(user_id=request.userID).upload(data=output.getvalue(), file_name=file_name)
+        # Загружаем в контентный микросервис файл xml
+        xml_content_resp = await ContentApi(user_id=request.userID).upload(data=xml_stream.getvalue(),
+                                                                           file_name=xml_file_name)
 
         declaration.status = DeclarationStatus.success
-        declaration.image_url = content_response.fileName
+        declaration.xlsx_image_url = xlsx_content_resp.fileName
+        declaration.xml_image_url = xml_content_resp.fileName
+
         await declaration.save()
 
     # В случае если не сработал nginx или vpn
@@ -197,7 +223,8 @@ async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclaratio
                                                inn=dclr.legal_entity_inn,
                                                date=dclr.date.strftime('%Y-%m-%d'),
                                                status=dclr.status,
-                                               url=dclr.image_url
+                                               xlsxUrl=dclr.xlsx_image_url,
+                                               xmlUrl=dclr.xml_image_url
                                                ))
 
     return GetDeclarationsResponse(declarations=lit_declarations_r)
@@ -211,18 +238,23 @@ async def remove_declaration(request: RemoveDeclarationRequest) -> RemoveDeclara
     :param request: объект на создание декларации RemoveDeclarationRequest
     :return: response объект на создание декларации RemoveDeclarationResponse
     """
-    
+
     declaration = await Declaration.filter(id=request.id, user_id=request.userID).first()
 
     if not declaration:
         raise Exception("Декларация не найдена.")
 
     # Если есть ссылка удаляем файл на контентном мс
-    if declaration.image_url is not None:
+    if (declaration.xlsx_image_url is not None) or (declaration.xml_image_url is not None):
         try:
-            await ContentApi(user_id=request.userID).delete(file_url=declaration.image_url)
+            if declaration.xlsx_image_url is not None:
+                await ContentApi(user_id=request.userID).delete(file_url=declaration.xlsx_image_url)
+            if declaration.xml_image_url is not None:
+                await ContentApi(user_id=request.userID).delete(file_url=declaration.xml_image_url)
+
             # Удаляем декларацию из бд
             await declaration.delete()
+
         except IndexError:
             declaration.status = 'no_file'
 

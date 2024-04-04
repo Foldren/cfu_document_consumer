@@ -9,4 +9,5 @@ class CDeclaration:
     inn: int
     date: str
     status: StatusEnum  # статус формирования декларации
-    url: str = None
+    xlsxUrl: str = None
+    xmlUrl: str = None
