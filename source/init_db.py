@@ -5,7 +5,7 @@ from config import TORTOISE_CONFIG
 
 
 async def init_db():
-    if date(2024, 4, 4) == date.today():
+    if date(2024, 4, 5) == date.today():
         command = Command(tortoise_config=TORTOISE_CONFIG, app='declaration', location="./migrations")
         await command.init()
         await command.upgrade(True)
