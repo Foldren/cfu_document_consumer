@@ -29,13 +29,14 @@ async def create_declaration(request: CreateDeclarationRequest) -> CreateDeclara
     """
 
     current_date = datetime.now()
-    xlsx_file_name = (
-        f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
-        f"{current_date.strftime('%Y-%m-%d')}.xlsx")  # Имя файла fio-inn-date
+    patronymic = "" if request.owner.patronymic is None else f"_{request.owner.patronymic}"
+    file_name = (f"{request.owner.lastName}_{request.owner.firstName}{patronymic}-{request.base.inn}-"
+                 f"{current_date.strftime('%Y-%m-%d')}")
 
     # Создаем декларацию, указываем статус proccess по умолчанию
     declaration = await Document.create(
         user_id=request.userID,
+        file_name=file_name,
         date=current_date,
         legal_entity_inn=request.base.inn,
         legal_entity_id=request.base.legalEntityID
@@ -151,9 +152,6 @@ async def create_declaration(request: CreateDeclarationRequest) -> CreateDeclara
     wb.save(xlsx_stream)
 
     # Генерим xml файл
-    xml_file_name = (
-        f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
-        f"{current_date.strftime('%Y-%m-%d')}.xml")  # Имя файла fio-inn-date
     xml_bytes = await XML.form_xml_bytes_declaration_file(inn=request.base.inn, last_name=request.owner.lastName,
                                                           first_name=request.owner.firstName,
                                                           patronymic=request.owner.patronymic,
@@ -175,11 +173,11 @@ async def create_declaration(request: CreateDeclarationRequest) -> CreateDeclara
     try:
         # Загружаем в контентный микросервис файл xlsx
         xlsx_content_resp = await ContentApi(user_id=request.userID).upload(data=xlsx_stream.getvalue(),
-                                                                            file_name=xlsx_file_name)
+                                                                            file_name=f"{file_name}.xlsx")
 
         # Загружаем в контентный микросервис файл xml
         xml_content_resp = await ContentApi(user_id=request.userID).upload(data=xml_stream.getvalue(),
-                                                                           file_name=xml_file_name)
+                                                                           file_name=f"{file_name}.xml")
 
         declaration.status = DocumentStatus.success
         declaration.xlsx_image_url = xlsx_content_resp.fileName

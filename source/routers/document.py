@@ -21,19 +21,18 @@ async def get_document_list(request: GetDocumentsRequest) -> GetDocumentsRespons
 
     documents = await Document.filter(user_id=request.userID, status__not='no_file').all()
 
-    lit_documents_r = []
+    list_documents_r = []
     for doc in documents:
-        lit_documents_r.append(CDocument(id=doc.id,
-                                         name=doc.file_name,
+        list_documents_r.append(CDocument(id=doc.id,
                                          inn=doc.legal_entity_inn,
                                          date=doc.date.strftime('%Y-%m-%d'),
                                          status=doc.status,
                                          documentType=doc.type,
                                          xlsxUrl=doc.xlsx_image_url,
-                                         xmlUrl=doc.xml_image_url
-                                         ))
+                                         xmlUrl=doc.xml_image_url,
+                                         name=doc.file_name))
 
-    return GetDocumentsResponse(declarations=lit_documents_r)
+    return GetDocumentsResponse(declarations=list_documents_r)
 
 
 @consumer(router=router, queue=document_queue, pattern="document.document-remove",

@@ -3,6 +3,7 @@ from io import BytesIO
 from json import JSONDecodeError
 from faststream.rabbit import RabbitRouter
 from components.decorators import consumer
+from components.enums import DocumentTypeEnum
 from components.queues import document_queue
 from components.requests.advance_payment import CreateAdvancePaymentRequest
 from components.responses.advance_payment import CreateAdvancePaymentResponse
@@ -25,19 +26,22 @@ async def create_advance_payment(request: CreateAdvancePaymentRequest) -> Create
     """
 
     current_date = datetime.now()
+    patronymic = "" if request.owner.patronymic is None else f"_{request.owner.patronymic}"
+    file_name = (f"{request.owner.lastName}_{request.owner.firstName}{patronymic}-{request.advancePayment.inn}-"
+                 f"{current_date.strftime('%Y-%m-%d')}")
 
     # Создаем декларацию, указываем статус proccess по умолчанию
     advance_payment = await Document.create(
         user_id=request.userID,
+        file_name=file_name,
         date=current_date,
         legal_entity_inn=request.advancePayment.inn,
-        legal_entity_id=request.advancePayment.legalEntityID
+        legal_entity_id=request.advancePayment.legalEntityID,
+        type=DocumentTypeEnum.advance_payment
     )
 
     # Генерим xml файл
-    xml_file_name = (
-        f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.advancePayment.inn}-"
-        f"{current_date.strftime('%Y-%m-%d')}.xml")  # Имя файла fio-inn-date
+    xml_file_name = f"{file_name}.xml"  # Имя файла fio-inn-date
 
     xml_bytes = await XML.form_xml_bytes_advance_payment_file(inn=request.advancePayment.inn,
                                                               last_name=request.owner.lastName,
