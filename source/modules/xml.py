@@ -3,9 +3,10 @@ from datetime import datetime
 
 class XML:
     @staticmethod
-    async def form_xml_bytes_declaration_file(inn: int, last_name: str, first_name: str, patronymic: str, phone_number: str,
-                                              report_year: str, authority_code: str, octmo_code: str, rate: int, workers_count: int,
-                                              codes: dict[str, int | str]) -> bytearray:
+    async def form_xml_bytes_declaration_file(inn: int, last_name: str, first_name: str, phone_number: str,
+                                              report_year: str, authority_code: str, octmo_code: str, rate: int,
+                                              codes: dict[str, int | str], patronymic: str = None,
+                                              workers_count: int = None) -> bytearray:
         date_form = datetime.now().strftime("%d.%m.%Y")
         prize_np = (1 if workers_count > 0 else 2) if workers_count is not None else 2
 
@@ -43,9 +44,9 @@ f"""<Файл xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ИдФайл
         return bytearray(xml_str, 'utf-8')
 
     @staticmethod
-    async def form_xml_bytes_advance_payment_file(inn: int, last_name: str, first_name: str, patronymic: str,
+    async def form_xml_bytes_advance_payment_file(inn: int, last_name: str, first_name: str,
                                                   report_year: str, authority_code: str, octmo_code: str,
-                                                  quarter: int, kbk: str, revenue: int) -> bytearray:
+                                                  quarter: int, kbk: str, revenue: int, patronymic: str = None) -> bytearray:
         date_form = datetime.now().strftime("%d.%m.%Y")
         patronymic = ' Отчество="' + patronymic + '"' if patronymic is not None else ''
 
