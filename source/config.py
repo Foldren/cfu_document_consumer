@@ -8,9 +8,9 @@ IS_THIS_LOCAL = "Pycharm" in str(getcwd())
 
 RABBITMQ_URL = environ['RABBITMQ_URL']
 
-DECLARATION_QUEUE = "declaration_queue"
+DOCUMENT_QUEUE = "document_queue"
 
-EXCEL_TEMPLATE_PATH = str(getcwd()) + "/declaration_template.xlsx"
+EXCEL_DECL_TEMPLATE_PATH = str(getcwd()) + "/declaration_template.xlsx"
 
 JWT_SECRET = environ["JWT_SECRET"]
 
@@ -20,9 +20,9 @@ CONTENT_API_URL = environ["CONTENT_API_URL"]
 
 TORTOISE_CONFIG = {
     "connections": {
-        "declaration": environ['DC_PG_URL'],
+        "document": environ['DC_PG_URL'],
     },
     "apps": {
-        "declaration": {"models": ["db_models.declaration", "aerich.models"], "default_connection": "declaration"},
+        "document": {"models": ["db_models.document", "aerich.models"], "default_connection": "document"},
     }
 }

@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from components.enums import RateEnum
+from components.enums import RateEnum, QuarterEnum
 
 
 @dataclass
@@ -39,3 +39,22 @@ class CDeclarationRevenue:
     sixMonths: int
     nineMonths: int
     twelveMonths: int
+
+
+@dataclass
+class CAdvancePaymentOwner:
+    lastName: str  # фамилия
+    firstName: str  # имя
+    patronymic: str = None  # отчество
+
+
+@dataclass
+class CAdvancePayment:
+    authorityCode: str  # код налоговой инспекции
+    inn: int
+    oktmo: str  # Код, присвоенный территории муниципального образования или населенному пункту, входящему в его состав
+    revenue: int  # Сумма платежа
+    quarter: QuarterEnum  # НомерМесКварт
+    reportingYear: str  # отчётный год
+    kbk: str  # КБК
+    legalEntityID: str = None

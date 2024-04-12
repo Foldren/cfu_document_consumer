@@ -5,13 +5,11 @@ from faststream.rabbit import RabbitRouter
 from openpyxl.reader.excel import load_workbook
 from components.declaration_fields import ROW_OPTIONS
 from components.decorators import consumer
-from components.queues import declaration_queue
-from components.requests.declaration import CreateDeclarationRequest, GetDeclarationsRequest, RemoveDeclarationRequest
-from components.responses.children import CDeclaration
-from components.responses.declaration import CreateDeclarationResponse, GetDeclarationsResponse, \
-    RemoveDeclarationResponse
-from config import EXCEL_TEMPLATE_PATH, IS_THIS_LOCAL
-from db_models.declaration import Declaration, DeclarationStatus
+from components.queues import document_queue
+from components.requests.declaration import CreateDeclarationRequest
+from components.responses.declaration import CreateDeclarationResponse
+from config import EXCEL_DECL_TEMPLATE_PATH, IS_THIS_LOCAL
+from db_models.document import Document, DocumentStatus
 from modules.content_api import ContentApi
 from modules.excel import Excel
 from modules.formula import Formula
@@ -20,12 +18,12 @@ from modules.xml import XML
 router = RabbitRouter()
 
 
-@consumer(router=router, queue=declaration_queue, pattern="declaration.create-declaration",
+@consumer(router=router, queue=document_queue, pattern="document.create-declaration",
           request=CreateDeclarationRequest)
-async def create_declaration(request: CreateDeclarationRequest):
+async def create_declaration(request: CreateDeclarationRequest) -> CreateDeclarationResponse:
     """
-    Роут на создание декларации. Подсчитывает значения полей декларации, добавляет их в шаблон
-    declaration_template.xlsx, после чего сохраняет файл в поток в байтах и сохраняет в контентном мс.
+    Роут на создание декларации. Подсчитывает значения полей декларации, добавляет их в шаблоны
+    declaration_template.xlsx, declaration_template.xml, сохраняет файлы в поток в байтах и сохраняет в контентном мс.
     :param request: объект на создание декларации CreateDeclarationRequest
     :return: response объект на создание декларации CreateDeclarationResponse
     """
@@ -36,16 +34,15 @@ async def create_declaration(request: CreateDeclarationRequest):
         f"{current_date.strftime('%Y-%m-%d')}.xlsx")  # Имя файла fio-inn-date
 
     # Создаем декларацию, указываем статус proccess по умолчанию
-    declaration = await Declaration.create(
+    declaration = await Document.create(
         user_id=request.userID,
-        file_name=xlsx_file_name,
         date=current_date,
         legal_entity_inn=request.base.inn,
         legal_entity_id=request.base.legalEntityID
     )
 
     xlsx_stream = BytesIO()
-    wb = load_workbook(filename=EXCEL_TEMPLATE_PATH)
+    wb = load_workbook(filename=EXCEL_DECL_TEMPLATE_PATH)
     date_ip_open = datetime.strptime(request.base.createDate, '%Y-%m-%d')
 
     formula = Formula(rate=request.base.rate,
@@ -157,22 +154,22 @@ async def create_declaration(request: CreateDeclarationRequest):
     xml_file_name = (
         f"{request.owner.lastName}_{request.owner.firstName}_{request.owner.patronymic}-{request.base.inn}-"
         f"{current_date.strftime('%Y-%m-%d')}.xml")  # Имя файла fio-inn-date
-    xml_bytes = await XML.form_xml_bytes_file(inn=request.base.inn, last_name=request.owner.lastName,
-                                              first_name=request.owner.firstName,
-                                              patronymic=request.owner.patronymic,
-                                              report_year=request.declaration.reportingYear,
-                                              authority_code=request.declaration.authorityCode,
-                                              octmo_code=request.declaration.oktmoCurrent, rate=request.base.rate,
-                                              workers_count=request.base.employeesCount,
-                                              phone_number=request.owner.phoneNumber,
-                                              codes=codes)
+    xml_bytes = await XML.form_xml_bytes_declaration_file(inn=request.base.inn, last_name=request.owner.lastName,
+                                                          first_name=request.owner.firstName,
+                                                          patronymic=request.owner.patronymic,
+                                                          report_year=request.declaration.reportingYear,
+                                                          authority_code=request.declaration.authorityCode,
+                                                          octmo_code=request.declaration.oktmoCurrent, rate=request.base.rate,
+                                                          workers_count=request.base.employeesCount,
+                                                          phone_number=request.owner.phoneNumber,
+                                                          codes=codes)
     xml_stream = BytesIO(xml_bytes)
 
     # Сохраняем тестовый файл
     if IS_THIS_LOCAL:
-        with open("test.xlsx", "wb") as f:
+        with open("test_declaration.xlsx", "wb") as f:
             f.write(xlsx_stream.getvalue())
-        with open("test.xml", "wb") as f:
+        with open("test_declaration.xml", "wb") as f:
             f.write(xml_stream.getvalue())
 
     try:
@@ -184,7 +181,7 @@ async def create_declaration(request: CreateDeclarationRequest):
         xml_content_resp = await ContentApi(user_id=request.userID).upload(data=xml_stream.getvalue(),
                                                                            file_name=xml_file_name)
 
-        declaration.status = DeclarationStatus.success
+        declaration.status = DocumentStatus.success
         declaration.xlsx_image_url = xlsx_content_resp.fileName
         declaration.xml_image_url = xml_content_resp.fileName
 
@@ -192,70 +189,14 @@ async def create_declaration(request: CreateDeclarationRequest):
 
     # В случае если не сработал nginx или vpn
     except JSONDecodeError:
-        declaration.status = DeclarationStatus.error
+        declaration.status = DocumentStatus.error
         await declaration.save()
         raise Exception("Ошибка подключения 403, (контентный микросервис).")
 
     # В случае ошибки со стороны контентного мс
     except Exception as e:
-        declaration.status = DeclarationStatus.error
+        declaration.status = DocumentStatus.error
         await declaration.save()
         raise Exception(e)
 
     return CreateDeclarationResponse(declarationID=declaration.id)
-
-
-@consumer(router=router, queue=declaration_queue, pattern="declaration.get-declaration-list",
-          request=GetDeclarationsRequest)
-async def get_declaration_list(request: GetDeclarationsRequest) -> GetDeclarationsResponse:
-    """
-    Роут получение списка деклараций из бд.
-    :param request: объект на создание декларации GetDeclarationsRequest
-    :return: response объект на создание декларации GetDeclarationsResponse
-    """
-
-    declarations = await Declaration.filter(user_id=request.userID, status__not='no_file').all()
-
-    lit_declarations_r = []
-    for dclr in declarations:
-        lit_declarations_r.append(CDeclaration(id=dclr.id,
-                                               name=dclr.file_name,
-                                               inn=dclr.legal_entity_inn,
-                                               date=dclr.date.strftime('%Y-%m-%d'),
-                                               status=dclr.status,
-                                               xlsxUrl=dclr.xlsx_image_url,
-                                               xmlUrl=dclr.xml_image_url
-                                               ))
-
-    return GetDeclarationsResponse(declarations=lit_declarations_r)
-
-
-@consumer(router=router, queue=declaration_queue, pattern="declaration.declaration-remove",
-          request=RemoveDeclarationRequest)
-async def remove_declaration(request: RemoveDeclarationRequest) -> RemoveDeclarationResponse:
-    """
-    Роут на удаление декларации. Также удаляет ее из файловой системы контентного мс.
-    :param request: объект на создание декларации RemoveDeclarationRequest
-    :return: response объект на создание декларации RemoveDeclarationResponse
-    """
-
-    declaration = await Declaration.filter(id=request.id, user_id=request.userID).first()
-
-    if not declaration:
-        raise Exception("Декларация не найдена.")
-
-    # Если есть ссылка удаляем файл на контентном мс
-    if (declaration.xlsx_image_url is not None) or (declaration.xml_image_url is not None):
-        try:
-            if declaration.xlsx_image_url is not None:
-                await ContentApi(user_id=request.userID).delete(file_url=declaration.xlsx_image_url)
-            if declaration.xml_image_url is not None:
-                await ContentApi(user_id=request.userID).delete(file_url=declaration.xml_image_url)
-
-            # Удаляем декларацию из бд
-            await declaration.delete()
-
-        except IndexError:
-            declaration.status = 'no_file'
-
-    return RemoveDeclarationResponse(id=request.id)

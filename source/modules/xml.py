@@ -3,9 +3,9 @@ from datetime import datetime
 
 class XML:
     @staticmethod
-    async def form_xml_bytes_file(inn: int, last_name: str, first_name: str, patronymic: str, phone_number: str,
-                                  report_year: str, authority_code: str, octmo_code: str, rate: int, workers_count: int,
-                                  codes: dict[str, int | str]) -> bytearray:
+    async def form_xml_bytes_declaration_file(inn: int, last_name: str, first_name: str, patronymic: str, phone_number: str,
+                                              report_year: str, authority_code: str, octmo_code: str, rate: int, workers_count: int,
+                                              codes: dict[str, int | str]) -> bytearray:
         date_form = datetime.now().strftime("%d.%m.%Y")
         prize_np = (1 if workers_count > 0 else 2) if workers_count is not None else 2
 
@@ -37,6 +37,28 @@ f"""<Файл xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ИдФайл
                 </РасчНал1>
             </СумНалПУ_НП>
         </УСН>
+    </Документ>
+</Файл>"""
+
+        return bytearray(xml_str, 'utf-8')
+
+    @staticmethod
+    async def form_xml_bytes_advance_payment_file(inn: int, last_name: str, first_name: str, patronymic: str,
+                                                  report_year: str, authority_code: str, octmo_code: str,
+                                                  quarter: int, kbk: str, revenue: int) -> bytearray:
+        date_form = datetime.now().strftime("%d.%m.%Y")
+        patronymic = ' Отчество="' + patronymic + '"' if patronymic is not None else ''
+
+        xml_str = \
+f"""<Файл xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ИдФайл="UT_UVISCHSUMNAL_2000_2000_253608161886_20240405_c997410b-d911-43c3-ba00-90c4dd731ad6" ВерсПрог="1С:БУХГАЛТЕРИЯ 3.0.147.25" ВерсФорм="5.02">
+    <Документ КНД="1110355" ДатаДок="{date_form}" КодНО="{authority_code}">
+        <СвНП>
+            <НПИП ИННФЛ="{inn}"/>
+        </СвНП>
+        <Подписант ПрПодп="1">
+            <ФИО Фамилия="{last_name}" Имя="{first_name}"{patronymic}/>
+        </Подписант>
+        <УвИсчСумНалог ОКТМО="{octmo_code}" КБК="{kbk}" СумНалогАванс="{revenue}" Период="34" НомерМесКварт="0{quarter}" Год="{report_year}"/>
     </Документ>
 </Файл>"""
 

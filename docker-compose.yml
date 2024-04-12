@@ -1,8 +1,8 @@
 version: "3.3"
 services:
-  declaration_consumer:
+  document_consumer:
     build: .
-    container_name: declaration_consumer
+    container_name: document_consumer
     restart: always
     environment:
       - TZ=Europe/Moscow
@@ -12,9 +12,9 @@ services:
     networks:
       - uprav_cfu_network
 
-  declaration_db:
+  document_db:
     image: postgres:16.1-alpine3.18
-    container_name: declaration_db
+    container_name: document_db
     restart: always
     env_file:
       - ./.env
