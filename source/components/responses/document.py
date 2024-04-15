@@ -4,7 +4,7 @@ from components.responses.children import CDocument
 
 @dataclass
 class GetDocumentsResponse:
-    __slots__ = {"declarations"}
+    __slots__ = {"documents"}
     documents: list[CDocument]
 
 
