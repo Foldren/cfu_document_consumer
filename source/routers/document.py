@@ -32,7 +32,7 @@ async def get_document_list(request: GetDocumentsRequest) -> GetDocumentsRespons
                                          xmlUrl=doc.xml_image_url,
                                          name=doc.file_name))
 
-    return GetDocumentsResponse(declarations=list_documents_r)
+    return GetDocumentsResponse(documents=list_documents_r)
 
 
 @consumer(router=router, queue=document_queue, pattern="document.document-remove",
