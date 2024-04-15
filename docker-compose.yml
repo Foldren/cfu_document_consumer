@@ -8,9 +8,10 @@ services:
       - TZ=Europe/Moscow
     env_file:
       - ./source/.env
-    profiles: [rebuild]
     networks:
       - uprav_cfu_network
+    depends_on:
+      - document_db
 
   document_db:
     image: postgres:16.1-alpine3.18
@@ -28,6 +29,7 @@ services:
       - uprav_cfu_network
     volumes:
       - db_data:/var/lib/postgresql/data
+    profiles: [update_db]
 
 volumes:
   db_data:
