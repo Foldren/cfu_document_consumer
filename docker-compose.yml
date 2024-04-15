@@ -10,8 +10,6 @@ services:
       - ./source/.env
     networks:
       - uprav_cfu_network
-    depends_on:
-      - document_db
 
   document_db:
     image: postgres:16.1-alpine3.18
