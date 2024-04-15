@@ -7,7 +7,7 @@ class CreateAdvancePaymentRequest:
     __slots__ = {"userID", "owner", "advancePayment"}
     userID: str
     owner: CAdvancePaymentOwner
-    advancePayment: CAdvancePayment
+    advancePaymentData: CAdvancePayment
 
 
 

@@ -27,7 +27,7 @@ async def create_advance_payment(request: CreateAdvancePaymentRequest) -> Create
 
     current_date = datetime.now()
     patronymic = "" if request.owner.patronymic is None else f"_{request.owner.patronymic}"
-    file_name = (f"{request.owner.lastName}_{request.owner.firstName}{patronymic}-{request.advancePayment.inn}-"
+    file_name = (f"{request.owner.lastName}_{request.owner.firstName}{patronymic}-{request.advancePaymentData.inn}-"
                  f"{current_date.strftime('%Y-%m-%d')}")
 
     # Создаем декларацию, указываем статус proccess по умолчанию
@@ -35,24 +35,24 @@ async def create_advance_payment(request: CreateAdvancePaymentRequest) -> Create
         user_id=request.userID,
         file_name=file_name,
         date=current_date,
-        legal_entity_inn=request.advancePayment.inn,
-        legal_entity_id=request.advancePayment.legalEntityID,
+        legal_entity_inn=request.advancePaymentData.inn,
+        legal_entity_id=request.advancePaymentData.legalEntityID,
         type=DocumentTypeEnum.advance_payment
     )
 
     # Генерим xml файл
     xml_file_name = f"{file_name}.xml"  # Имя файла fio-inn-date
 
-    xml_bytes = await XML.form_xml_bytes_advance_payment_file(inn=request.advancePayment.inn,
+    xml_bytes = await XML.form_xml_bytes_advance_payment_file(inn=request.advancePaymentData.inn,
                                                               last_name=request.owner.lastName,
                                                               first_name=request.owner.firstName,
                                                               patronymic=request.owner.patronymic,
-                                                              report_year=request.advancePayment.reportingYear,
-                                                              authority_code=request.advancePayment.authorityCode,
-                                                              octmo_code=request.advancePayment.oktmo,
-                                                              kbk=request.advancePayment.kbk,
-                                                              quarter=request.advancePayment.quarter,
-                                                              revenue=request.advancePayment.revenue)
+                                                              report_year=request.advancePaymentData.reportingYear,
+                                                              authority_code=request.advancePaymentData.authorityCode,
+                                                              octmo_code=request.advancePaymentData.oktmo,
+                                                              kbk=request.advancePaymentData.kbk,
+                                                              quarter=request.advancePaymentData.quarter,
+                                                              revenue=request.advancePaymentData.revenue)
     xml_stream = BytesIO(xml_bytes)
 
     # Сохраняем тестовый файл
