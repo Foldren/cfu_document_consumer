@@ -3,7 +3,7 @@ from io import BytesIO
 from json import JSONDecodeError
 from faststream.rabbit import RabbitRouter
 from openpyxl.reader.excel import load_workbook
-from components.declaration_fields import ROW_OPTIONS
+from components.intervals import DECL_INTERVALS
 from components.decorators import consumer
 from components.queues import document_queue
 from components.requests.declaration import CreateDeclarationRequest
@@ -58,94 +58,94 @@ async def create_declaration(request: CreateDeclarationRequest) -> CreateDeclara
 
     codes = await formula.get_codes()
 
-    ws = wb['Титул']  # Открываем лист 'Титул'
-    await Excel(worksh=ws).insert_rows_to_ws([
+    list_name = 'Титул'
+    await Excel(worksh=wb[list_name]).insert_rows_to_ws([
         # Вставляем ИНН
-        {'text': request.base.inn, 'row_options': ROW_OPTIONS['TITLE']['INN']},
+        {'text': request.base.inn, 'interval': DECL_INTERVALS[list_name]['INN']},
         # Вставляем отчетный год
-        {'text': request.declaration.reportingYear, 'row_options': ROW_OPTIONS['TITLE']['REPORT_YEAR']},
+        {'text': request.declaration.reportingYear, 'interval': DECL_INTERVALS[list_name]['REPORT_YEAR']},
         # Вставляем Код налоговой инспекции
-        {'text': request.declaration.authorityCode, 'row_options': ROW_OPTIONS['TITLE']['TAX_INSPECTION_CODE']},
+        {'text': request.declaration.authorityCode, 'interval': DECL_INTERVALS[list_name]['TAX_INSPECTION_CODE']},
         # Вставляем Фамилию
-        {'text': request.owner.lastName, 'row_options': ROW_OPTIONS['TITLE']['LAST_NAME']},
+        {'text': request.owner.lastName, 'interval': DECL_INTERVALS[list_name]['LAST_NAME']},
         # Вставляем Имя
-        {'text': request.owner.firstName, 'row_options': ROW_OPTIONS['TITLE']['FIRST_NAME']},
+        {'text': request.owner.firstName, 'interval': DECL_INTERVALS[list_name]['FIRST_NAME']},
         # Вставляем Отчество
-        {'text': request.owner.patronymic, 'row_options': ROW_OPTIONS['TITLE']['PATRONYMIC']},
+        {'text': request.owner.patronymic, 'interval': DECL_INTERVALS[list_name]['PATRONYMIC']},
         # Вставляем Мобильный номер
-        {'text': request.owner.phoneNumber, 'row_options': ROW_OPTIONS['TITLE']['PHONE_NUMBER']},
+        {'text': request.owner.phoneNumber, 'interval': DECL_INTERVALS[list_name]['PHONE_NUMBER']},
         # Вставляем Фамилию налогоплатильщика
-        {'text': request.owner.lastName, 'row_options': ROW_OPTIONS['TITLE']['TAX_LAST_NAME']},
+        {'text': request.owner.lastName, 'interval': DECL_INTERVALS[list_name]['TAX_LAST_NAME']},
         # Вставляем Имя налогоплатильщика
-        {'text': request.owner.firstName, 'row_options': ROW_OPTIONS['TITLE']['TAX_FIRST_NAME']},
+        {'text': request.owner.firstName, 'interval': DECL_INTERVALS[list_name]['TAX_FIRST_NAME']},
         # Вставляем Отчество налогоплатильщика
-        {'text': request.owner.patronymic, 'row_options': ROW_OPTIONS['TITLE']['TAX_PATRONYMIC']},
+        {'text': request.owner.patronymic, 'interval': DECL_INTERVALS[list_name]['TAX_PATRONYMIC']},
         # Вставляем ИП налогоплатильщика
-        {'text': request.owner.taxPayer.split("\\n")[1], 'row_options': ROW_OPTIONS['TITLE']['TAX_IP']},
-    ], is_title_list=True)
+        {'text': request.owner.taxPayer.split("\\n")[1], 'interval': DECL_INTERVALS[list_name]['TAX_IP']},
+    ])
 
-    ws = wb['Раздел 1.1']  # Открываем лист 'Раздел 1.1'
-    await Excel(worksh=ws).insert_rows_to_ws([
+    list_name = 'Раздел 1.1'
+    await Excel(worksh=wb[list_name]).insert_rows_to_ws([
         # Вставляем ОКТМО код
-        {'text': request.declaration.oktmoCurrent, 'row_options': ROW_OPTIONS['1_1']['OKTMO_010']},
+        {'text': request.declaration.oktmoCurrent, 'interval': DECL_INTERVALS[list_name]['OKTMO_010']},
         # Вставляем строку 020
-        {'text': codes['020'], 'row_options': ROW_OPTIONS['1_1']['020']},
+        {'text': codes['020'], 'interval': DECL_INTERVALS[list_name]['020']},
         # Вставляем строку 040
-        {'text': codes['040'], 'row_options': ROW_OPTIONS['1_1']['040']},
+        {'text': codes['040'], 'interval': DECL_INTERVALS[list_name]['040']},
         # Вставляем строку 050
-        {'text': abs(codes['050']), 'row_options': ROW_OPTIONS['1_1']['050']},
+        {'text': abs(codes['050']), 'interval': DECL_INTERVALS[list_name]['050']},
         # Вставляем строку 050
-        {'text': codes['070'], 'row_options': ROW_OPTIONS['1_1']['070']},
+        {'text': codes['070'], 'interval': DECL_INTERVALS[list_name]['070']},
         # Вставляем строку 050
-        {'text': abs(codes['080']), 'row_options': ROW_OPTIONS['1_1']['080']},
+        {'text': abs(codes['080']), 'interval': DECL_INTERVALS[list_name]['080']},
         # Вставляем строку 100
-        {'text': codes['100'], 'row_options': ROW_OPTIONS['1_1']['100']},
+        {'text': codes['100'], 'interval': DECL_INTERVALS[list_name]['100']},
         # Вставляем строку 101
-        {'text': codes['101'], 'row_options': ROW_OPTIONS['1_1']['101']},
+        {'text': codes['101'], 'interval': DECL_INTERVALS[list_name]['101']},
         # Вставляем строку 110
-        {'text': abs(codes['1_110']), 'row_options': ROW_OPTIONS['1_1']['110']},
+        {'text': abs(codes['1_110']), 'interval': DECL_INTERVALS[list_name]['110']},
     ])
 
-    ws = wb['Раздел 2.1.1']  # Открываем лист 'Раздел 2.1.1'
-    await Excel(worksh=ws).insert_rows_to_ws([
+    list_name = 'Раздел 2.1.1'
+    await Excel(worksh=wb[list_name]).insert_rows_to_ws([
         # Вставляем строку 101 (налоговая ставка)
-        {'text': request.base.rate, 'row_options': ROW_OPTIONS['2_1_1']['101']},
+        {'text': request.base.rate, 'interval': DECL_INTERVALS[list_name]['101']},
         # Вставляем строку 110
-        {'text': codes['2_110'], 'row_options': ROW_OPTIONS['2_1_1']['110']},
+        {'text': codes['2_110'], 'interval': DECL_INTERVALS[list_name]['110']},
         # Вставляем строку 111
-        {'text': codes['111'], 'row_options': ROW_OPTIONS['2_1_1']['111']},
+        {'text': codes['111'], 'interval': DECL_INTERVALS[list_name]['111']},
         # Вставляем строку 112
-        {'text': codes['112'], 'row_options': ROW_OPTIONS['2_1_1']['112']},
+        {'text': codes['112'], 'interval': DECL_INTERVALS[list_name]['112']},
         # Вставляем строку 113
-        {'text': codes['113'], 'row_options': ROW_OPTIONS['2_1_1']['113']},
+        {'text': codes['113'], 'interval': DECL_INTERVALS[list_name]['113']},
         # Вставляем строку 120 (налоговая ставка)
-        {'text': codes['120'], 'row_options': ROW_OPTIONS['2_1_1']['120']},
+        {'text': codes['120'], 'interval': DECL_INTERVALS[list_name]['120']},
         # Вставляем строку 121 (налоговая ставка)
-        {'text': codes['121'], 'row_options': ROW_OPTIONS['2_1_1']['121']},
+        {'text': codes['121'], 'interval': DECL_INTERVALS[list_name]['121']},
         # Вставляем строку 122 (налоговая ставка)
-        {'text': codes['122'], 'row_options': ROW_OPTIONS['2_1_1']['122']},
+        {'text': codes['122'], 'interval': DECL_INTERVALS[list_name]['122']},
         # Вставляем строку 123 (налоговая ставка)
-        {'text': codes['123'], 'row_options': ROW_OPTIONS['2_1_1']['123']},
+        {'text': codes['123'], 'interval': DECL_INTERVALS[list_name]['123']},
         # Вставляем строку 130
-        {'text': codes['130'], 'row_options': ROW_OPTIONS['2_1_1']['130']},
+        {'text': codes['130'], 'interval': DECL_INTERVALS[list_name]['130']},
         # Вставляем строку 131
-        {'text': codes['131'], 'row_options': ROW_OPTIONS['2_1_1']['131']},
+        {'text': codes['131'], 'interval': DECL_INTERVALS[list_name]['131']},
         # Вставляем строку 132
-        {'text': codes['132'], 'row_options': ROW_OPTIONS['2_1_1']['132']},
+        {'text': codes['132'], 'interval': DECL_INTERVALS[list_name]['132']},
         # Вставляем строку 133
-        {'text': codes['133'], 'row_options': ROW_OPTIONS['2_1_1']['133']},
+        {'text': codes['133'], 'interval': DECL_INTERVALS[list_name]['133']},
     ])
 
-    ws = wb['Раздел 2.1.1 (продолжение)']  # Открываем лист 'Раздел 2.1.1 (продолжение)'
-    await Excel(worksh=ws).insert_rows_to_ws([
+    list_name = 'Раздел 2.1.1 (продолжение)'
+    await Excel(worksh=wb[list_name]).insert_rows_to_ws([
         # Вставляем строку 140
-        {'text': codes['140'], 'row_options': ROW_OPTIONS['EXTEND_2_1_1']['140']},
+        {'text': codes['140'], 'interval': DECL_INTERVALS[list_name]['140']},
         # Вставляем строку 141
-        {'text': codes['141'], 'row_options': ROW_OPTIONS['EXTEND_2_1_1']['141']},
+        {'text': codes['141'], 'interval': DECL_INTERVALS[list_name]['141']},
         # Вставляем строку 142
-        {'text': codes['142'], 'row_options': ROW_OPTIONS['EXTEND_2_1_1']['142']},
+        {'text': codes['142'], 'interval': DECL_INTERVALS[list_name]['142']},
         # Вставляем строку 143
-        {'text': codes['143'], 'row_options': ROW_OPTIONS['EXTEND_2_1_1']['143']},
+        {'text': codes['143'], 'interval': DECL_INTERVALS[list_name]['143']},
     ])
 
     # Сохраняем в поток

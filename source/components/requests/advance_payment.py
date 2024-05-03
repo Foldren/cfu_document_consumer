@@ -4,7 +4,7 @@ from components.requests.children import CAdvancePayment, CAdvancePaymentOwner, 
 
 @dataclass
 class CreateAdvancePaymentRequest:
-    __slots__ = {"userID", "owner", "advancePayment"}
+    __slots__ = {"userID", "owner", "advancePaymentData"}
     userID: str
     owner: CAdvancePaymentOwner
     advancePaymentData: CAdvancePayment

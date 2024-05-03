@@ -12,6 +12,8 @@ DOCUMENT_QUEUE = "document_queue"
 
 EXCEL_DECL_TEMPLATE_PATH = str(getcwd()) + "/declaration_template.xlsx"
 
+EXCEL_AP_TEMPLATE_PATH = str(getcwd()) + "/advance_payment_template.xlsx"
+
 JWT_SECRET = environ["JWT_SECRET"]
 
 TEST_USER_ID = "01HRY2SVSPZN4VABH90S4VFZ7H"
